@@ -32,6 +32,7 @@ interface SidebarProps {
   collapsed: boolean;
   openMenus: Record<string, boolean>;
   toggleMenu: (id: string) => void;
+  alarmBadgeCount?: number;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -40,6 +41,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   collapsed,
   openMenus,
   toggleMenu,
+  alarmBadgeCount,
 }) => {
   const renderIcon = (iconName: string) => {
     switch (iconName) {
@@ -128,8 +130,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <span className="nav-icon">{renderIcon(item.icon)}</span>
                   <span className="nav-text">{item.label}</span>
 
-                  {item.badge !== undefined && (
-                    <span className="nav-badge-pill">{item.badge}</span>
+                  {item.id === 'alarms' && alarmBadgeCount !== undefined ? (
+                    <span className="nav-badge-pill">{alarmBadgeCount}</span>
+                  ) : (
+                    item.badge !== undefined && <span className="nav-badge-pill">{item.badge}</span>
                   )}
 
                   {item.hasSubmenu && (

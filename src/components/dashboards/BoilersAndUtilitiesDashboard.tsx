@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { LiveValue } from '../../lib/LiveTelemetry';
 
 export const BoilersDashboard: React.FC = () => {
   const [selectedBoiler, setSelectedBoiler] = useState<'b1' | 'b2' | 'whrb'>('b1');
@@ -32,7 +33,7 @@ export const BoilersDashboard: React.FC = () => {
             <span className="metric-badge green">RUNNING</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">42.50</span>
+            <LiveValue className="metric-number" value={42.5} seed={1} amplitude={0.3400} digits={2} />
             <span className="metric-unit">TPH</span>
           </div>
           <div className="metric-footer">
@@ -46,7 +47,7 @@ export const BoilersDashboard: React.FC = () => {
             <span className="metric-badge green">STABLE</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">10.24</span>
+            <LiveValue className="metric-number" value={10.24} seed={2} amplitude={0.0819} digits={2} />
             <span className="metric-unit">Bar</span>
           </div>
           <div className="metric-footer">
@@ -60,7 +61,7 @@ export const BoilersDashboard: React.FC = () => {
             <span className="metric-badge green">OPTIMAL</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">88.4</span>
+            <LiveValue className="metric-number" value={88.4} seed={3} amplitude={0.7072} digits={1} />
             <span className="metric-unit">%</span>
           </div>
           <div className="metric-footer">
@@ -74,7 +75,7 @@ export const BoilersDashboard: React.FC = () => {
             <span className="metric-badge normal">TREATED</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">104.5</span>
+            <LiveValue className="metric-number" value={104.5} seed={4} amplitude={0.8360} digits={1} />
             <span className="metric-unit">°C</span>
           </div>
           <div className="metric-footer">
@@ -153,7 +154,7 @@ export const UtilitiesDashboard: React.FC = () => {
             <span className="metric-badge green">SSGC SUPPLY</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">3,240</span>
+            <LiveValue className="metric-number" value={3240} seed={5} amplitude={25.9200} digits={0} />
             <span className="metric-unit">m³/h</span>
           </div>
           <div className="metric-footer">
@@ -167,7 +168,7 @@ export const UtilitiesDashboard: React.FC = () => {
             <span className="metric-badge green">CONSTANT</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">7.25</span>
+            <LiveValue className="metric-number" value={7.25} seed={6} amplitude={0.0580} digits={2} />
             <span className="metric-unit">Bar</span>
           </div>
           <div className="metric-footer">
@@ -181,7 +182,7 @@ export const UtilitiesDashboard: React.FC = () => {
             <span className="metric-badge normal">DEEP WELLS</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">142</span>
+            <LiveValue className="metric-number" value={142} seed={7} amplitude={1.1360} digits={0} />
             <span className="metric-unit">m³/h</span>
           </div>
           <div className="metric-footer">
@@ -195,7 +196,7 @@ export const UtilitiesDashboard: React.FC = () => {
             <span className="metric-badge green">PSA PLANT</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">99.9</span>
+            <LiveValue className="metric-number" value={99.9} seed={8} amplitude={0.7992} digits={1} />
             <span className="metric-unit">% N₂</span>
           </div>
           <div className="metric-footer">

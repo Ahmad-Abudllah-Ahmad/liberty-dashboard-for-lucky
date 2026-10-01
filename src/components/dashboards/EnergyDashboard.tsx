@@ -1,11 +1,47 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { ShareBarChart } from '../charts/PortalCharts';
+import { LiveValue, useLiveNumber } from '../../lib/LiveTelemetry';
+import { formatNumber } from '../../lib/liveValue';
 
 export const EnergyDashboard: React.FC = () => {
   const [timeRange, setTimeRange] = useState<'1h' | '8h' | '24h' | '7d'>('24h');
 
+  const totalKw = useLiveNumber(14820, 1, 45);
+
+  const genGas = useLiveNumber(7620, 10, 35);
+  const genGrid = useLiveNumber(4200, 11, 28);
+  const genSolar = useLiveNumber(3000, 12, 22);
+
+  const deptDyeing = useLiveNumber(4850, 20, 28);
+  const deptPrint = useLiveNumber(4120, 21, 24);
+  const deptComp = useLiveNumber(1940, 22, 14);
+  const deptHvac = useLiveNumber(1680, 23, 12);
+  const deptWater = useLiveNumber(1250, 24, 10);
+  const deptLight = useLiveNumber(980, 25, 8);
+
+  const mixRows = useMemo(
+    () => [
+      { label: '⚡ Jenbacher Gas Gensets (JMS 620 x 2)', value: genGas, fillClass: 'gas-fill', unit: 'kW' },
+      { label: '🏭 K-Electric 11kV Feeder (Grid)', value: genGrid, fillClass: 'grid-fill', unit: 'kW' },
+      { label: '☀️ 3.5 MWp Rooftop Solar PV Array', value: genSolar, fillClass: 'solar-fill', unit: 'kW' },
+    ],
+    [genGas, genGrid, genSolar],
+  );
+
+  const deptRows = useMemo(
+    () => [
+      { label: 'Dyeing & Bleaching Mill', value: deptDyeing, unit: 'kW' },
+      { label: 'Printing & Stenters', value: deptPrint, unit: 'kW' },
+      { label: 'Compressors & Compressed Air', value: deptComp, unit: 'kW' },
+      { label: 'Chillers & HVAC System', value: deptHvac, unit: 'kW' },
+      { label: 'Water Pumps, RO & ETP', value: deptWater, unit: 'kW' },
+      { label: 'Lighting & Admin Facilities', value: deptLight, unit: 'kW' },
+    ],
+    [deptDyeing, deptPrint, deptComp, deptHvac, deptWater, deptLight],
+  );
+
   return (
     <div className="dashboard-content">
-      {/* Top Title & Filters */}
       <div className="content-header-row">
         <div>
           <h2>Energy Telemetry & Power Management</h2>
@@ -22,7 +58,6 @@ export const EnergyDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Main KPI Cards Row */}
       <div className="metric-cards-row">
         <div className="scada-metric-card">
           <div className="metric-header">
@@ -30,11 +65,11 @@ export const EnergyDashboard: React.FC = () => {
             <span className="metric-badge green">ONLINE</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">14,820</span>
+            <LiveValue value={14820} seed={1} amplitude={45} digits={0} />
             <span className="metric-unit">kW</span>
           </div>
           <div className="metric-footer">
-            <span className="text-green">▲ +2.4%</span> vs previous shift • Peak: 15,200 kW
+            <span className="text-green">▲ live</span> vs previous shift • Peak: 15,200 kW
           </div>
         </div>
 
@@ -44,12 +79,10 @@ export const EnergyDashboard: React.FC = () => {
             <span className="metric-badge green">OPTIMAL</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">0.982</span>
+            <LiveValue value={0.982} seed={2} amplitude={0.004} digits={3} />
             <span className="metric-unit">PF</span>
           </div>
-          <div className="metric-footer">
-            Capacitor bank 4 of 6 active • Target &gt; 0.95
-          </div>
+          <div className="metric-footer">Capacitor bank 4 of 6 active • Target &gt; 0.95</div>
         </div>
 
         <div className="scada-metric-card">
@@ -58,73 +91,36 @@ export const EnergyDashboard: React.FC = () => {
             <span className="metric-badge normal">STABLE</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">50.04</span>
+            <LiveValue value={50.04} seed={3} amplitude={0.02} digits={2} />
             <span className="metric-unit">Hz</span>
           </div>
-          <div className="metric-footer">
-            Min: 49.92 Hz • Max: 50.12 Hz
-          </div>
+          <div className="metric-footer">Min: 49.92 Hz • Max: 50.12 Hz</div>
         </div>
 
         <div className="scada-metric-card">
           <div className="metric-header">
-            <span className="metric-title">TODAY'S CONSUMPTION</span>
+            <span className="metric-title">TODAY&apos;S CONSUMPTION</span>
             <span className="metric-badge blue">ACCUMULATED</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">284.6</span>
+            <LiveValue value={284.6} seed={4} amplitude={0.35} digits={1} />
             <span className="metric-unit">MWh</span>
           </div>
-          <div className="metric-footer">
-            Specific Energy: 0.18 kWh / fabric meter
-          </div>
+          <div className="metric-footer">Specific Energy: 0.18 kWh / fabric meter</div>
         </div>
       </div>
 
-      {/* Power Source Mix & 3-Phase Telemetry */}
       <div className="scada-two-col">
-        {/* Source Mix */}
         <div className="scada-panel">
           <div className="panel-title-bar">
             <h3>Current Power Generation & Supply Mix</h3>
-            <span className="source-total">Total: 14.82 MW</span>
+            <span className="source-total">Total: {(totalKw / 1000).toFixed(2)} MW</span>
           </div>
-          <div className="sources-breakdown">
-            <div className="source-item">
-              <div className="source-info">
-                <span className="source-name">⚡ Jenbacher Gas Gensets (JMS 620 x 2)</span>
-                <span className="source-kw font-mono">7,620 kW (51.4%)</span>
-              </div>
-              <div className="source-bar">
-                <div className="source-fill gas-fill" style={{ width: '51.4%' }}></div>
-              </div>
-            </div>
-
-            <div className="source-item">
-              <div className="source-info">
-                <span className="source-name">🏭 K-Electric 11kV Feeder (Grid)</span>
-                <span className="source-kw font-mono">4,200 kW (28.3%)</span>
-              </div>
-              <div className="source-bar">
-                <div className="source-fill grid-fill" style={{ width: '28.3%' }}></div>
-              </div>
-            </div>
-
-            <div className="source-item">
-              <div className="source-info">
-                <span className="source-name">☀️ 3.5 MWp Rooftop Solar PV Array</span>
-                <span className="source-kw font-mono">3,000 kW (20.3%)</span>
-              </div>
-              <div className="source-bar">
-                <div className="source-fill solar-fill" style={{ width: '20.3%' }}></div>
-              </div>
-            </div>
-          </div>
-
+          <ShareBarChart layout="source" rows={mixRows} />
           <div className="source-legend-grid">
             <div className="legend-card">
               <span className="leg-label">Gas Genset Heat Rate</span>
-              <span className="leg-val font-mono">8.2 MJ/kWh</span>
+              <LiveValue className="leg-val font-mono" value={8.2} seed={30} amplitude={0.05} digits={1} suffix=" MJ/kWh" />
             </div>
             <div className="legend-card">
               <span className="leg-label">Grid Incomer Tariff</span>
@@ -132,86 +128,45 @@ export const EnergyDashboard: React.FC = () => {
             </div>
             <div className="legend-card">
               <span className="leg-label">Solar Irradiance</span>
-              <span className="leg-val font-mono">895 W/m²</span>
+              <LiveValue className="leg-val font-mono" value={895} seed={31} amplitude={12} digits={0} suffix=" W/m²" />
             </div>
           </div>
         </div>
 
-        {/* 3-Phase Voltage & Current Telemetry */}
         <div className="scada-panel">
           <div className="panel-title-bar">
             <h3>Substation Main LT Busbar 3-Phase Telemetry</h3>
             <span className="badge-tag">LT Incomer #1</span>
           </div>
-
           <div className="phases-grid">
-            <div className="phase-card">
-              <div className="phase-letter red">R (L1)</div>
-              <div className="phase-data">
-                <div className="phase-data-row">
-                  <span className="lbl">Voltage:</span>
-                  <span className="val font-mono">402.4 V</span>
-                </div>
-                <div className="phase-data-row">
-                  <span className="lbl">Current:</span>
-                  <span className="val font-mono">1,248 A</span>
-                </div>
-                <div className="phase-data-row">
-                  <span className="lbl">Power:</span>
-                  <span className="val font-mono">4,950 kW</span>
-                </div>
-                <div className="phase-data-row">
-                  <span className="lbl">THD (V):</span>
-                  <span className="val font-mono">1.8%</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="phase-card">
-              <div className="phase-letter yellow">Y (L2)</div>
-              <div className="phase-data">
-                <div className="phase-data-row">
-                  <span className="lbl">Voltage:</span>
-                  <span className="val font-mono">404.1 V</span>
-                </div>
-                <div className="phase-data-row">
-                  <span className="lbl">Current:</span>
-                  <span className="val font-mono">1,232 A</span>
-                </div>
-                <div className="phase-data-row">
-                  <span className="lbl">Power:</span>
-                  <span className="val font-mono">4,940 kW</span>
-                </div>
-                <div className="phase-data-row">
-                  <span className="lbl">THD (V):</span>
-                  <span className="val font-mono">1.9%</span>
+            {[
+              { letter: 'R (L1)', className: 'red', v: 402.4, a: 1248, p: 4950, s: 40 },
+              { letter: 'Y (L2)', className: 'yellow', v: 404.1, a: 1232, p: 4940, s: 41 },
+              { letter: 'B (L3)', className: 'blue', v: 401.8, a: 1240, p: 4930, s: 42 },
+            ].map((phase) => (
+              <div key={phase.letter} className="phase-card">
+                <div className={`phase-letter ${phase.className}`}>{phase.letter}</div>
+                <div className="phase-data">
+                  <div className="phase-data-row">
+                    <span className="lbl">Voltage:</span>
+                    <LiveValue className="val font-mono" value={phase.v} seed={phase.s} amplitude={0.8} digits={1} suffix=" V" />
+                  </div>
+                  <div className="phase-data-row">
+                    <span className="lbl">Current:</span>
+                    <LiveValue className="val font-mono" value={phase.a} seed={phase.s + 1} amplitude={6} digits={0} suffix=" A" />
+                  </div>
+                  <div className="phase-data-row">
+                    <span className="lbl">Power:</span>
+                    <LiveValue className="val font-mono" value={phase.p} seed={phase.s + 2} amplitude={18} digits={0} suffix=" kW" />
+                  </div>
+                  <div className="phase-data-row">
+                    <span className="lbl">THD (V):</span>
+                    <LiveValue className="val font-mono" value={1.8} seed={phase.s + 3} amplitude={0.05} digits={1} suffix="%" />
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <div className="phase-card">
-              <div className="phase-letter blue">B (L3)</div>
-              <div className="phase-data">
-                <div className="phase-data-row">
-                  <span className="lbl">Voltage:</span>
-                  <span className="val font-mono">401.8 V</span>
-                </div>
-                <div className="phase-data-row">
-                  <span className="lbl">Current:</span>
-                  <span className="val font-mono">1,240 A</span>
-                </div>
-                <div className="phase-data-row">
-                  <span className="lbl">Power:</span>
-                  <span className="val font-mono">4,930 kW</span>
-                </div>
-                <div className="phase-data-row">
-                  <span className="lbl">THD (V):</span>
-                  <span className="val font-mono">1.7%</span>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
-
           <div className="voltage-unbalance-row">
             <span>Phase Voltage Unbalance: <strong className="text-green">0.42%</strong> (Limit: &lt; 2.0%)</span>
             <span>Current Unbalance: <strong className="text-green">1.1%</strong> (Limit: &lt; 5.0%)</span>
@@ -219,43 +174,19 @@ export const EnergyDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Departmental Power Distribution */}
       <div className="scada-panel">
         <div className="panel-title-bar">
           <h3>Plant Departmental Power Distribution</h3>
           <span className="font-sub">Real-time Sub-metering Modbus TCP</span>
         </div>
         <div className="dept-distribution-grid">
-          <div className="dept-card">
-            <span className="dept-name">Dyeing & Bleaching Mill</span>
-            <span className="dept-kw font-mono">4,850 kW</span>
-            <span className="dept-share">32.7% of Plant</span>
-          </div>
-          <div className="dept-card">
-            <span className="dept-name">Printing & Stenters</span>
-            <span className="dept-kw font-mono">4,120 kW</span>
-            <span className="dept-share">27.8% of Plant</span>
-          </div>
-          <div className="dept-card">
-            <span className="dept-name">Compressors & Compressed Air</span>
-            <span className="dept-kw font-mono">1,940 kW</span>
-            <span className="dept-share">13.1% of Plant</span>
-          </div>
-          <div className="dept-card">
-            <span className="dept-name">Chillers & HVAC System</span>
-            <span className="dept-kw font-mono">1,680 kW</span>
-            <span className="dept-share">11.3% of Plant</span>
-          </div>
-          <div className="dept-card">
-            <span className="dept-name">Water Pumps, RO & ETP</span>
-            <span className="dept-kw font-mono">1,250 kW</span>
-            <span className="dept-share">8.4% of Plant</span>
-          </div>
-          <div className="dept-card">
-            <span className="dept-name">Lighting & Admin Facilities</span>
-            <span className="dept-kw font-mono">980 kW</span>
-            <span className="dept-share">6.6% of Plant</span>
-          </div>
+          {deptRows.map((row) => (
+            <div key={row.label} className="dept-card chart-interactive">
+              <span className="dept-name">{row.label}</span>
+              <span className="dept-kw font-mono">{formatNumber(row.value, 0)} kW</span>
+              <span className="dept-share">{((row.value / totalKw) * 100).toFixed(1)}% of Plant</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>

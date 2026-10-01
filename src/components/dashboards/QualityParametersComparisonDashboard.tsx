@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
+import { LiveValue } from '../../lib/LiveTelemetry';
 
 export const QualityParametersComparisonDashboard: React.FC = () => {
   const [selectedMachine, setSelectedMachine] = useState<string>('BLEACHING-01');
   const [activeSubTab, setActiveSubTab] = useState<string>('prod');
-  const [dateRange, setDateRange] = useState<string>('28-09-2026 to 29-09-2026');
+  const dateRange = '28-09-2026 to 29-09-2026';
 
   const machineOptions = [
     'BLEACHING-01',
@@ -107,7 +108,7 @@ export const QualityParametersComparisonDashboard: React.FC = () => {
             <span className="metric-badge green">RUNNING</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">28,450</span>
+            <LiveValue className="metric-number" value={28450} seed={1} amplitude={227.6000} digits={0} />
             <span className="metric-unit">Meters</span>
           </div>
           <div className="metric-footer">Shift Leader: Malik • Operator A</div>
@@ -119,7 +120,7 @@ export const QualityParametersComparisonDashboard: React.FC = () => {
             <span className="metric-badge blue">ACCUMULATED</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">48.2</span>
+            <LiveValue className="metric-number" value={48.2} seed={2} amplitude={0.3856} digits={1} />
             <span className="metric-unit">Tons</span>
           </div>
           <div className="metric-footer">Specific Steam: 1.69 kg / meter</div>
@@ -131,7 +132,7 @@ export const QualityParametersComparisonDashboard: React.FC = () => {
             <span className="metric-badge normal">NATURAL GAS</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">1,840</span>
+            <LiveValue className="metric-number" value={1840} seed={3} amplitude={14.7200} digits={0} />
             <span className="metric-unit">m³</span>
           </div>
           <div className="metric-footer">Burners modulated at 68%</div>

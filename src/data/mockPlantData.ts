@@ -45,11 +45,11 @@ export const navigationMenu: NavigationItem[] = [
     icon: 'utilities',
     hasSubmenu: true,
     subitems: [
-      { id: 'utilities-production', label: 'Utilities with Production', iconType: 'circle' },
-      { id: 'utilities-lotwise', label: 'Utilities with Lotwise Production', iconType: 'circle' },
-      { id: 'utilities-stoppage', label: 'Utilities with Stoppage', iconType: 'circle' },
-      { id: 'activity-log', label: 'Activity Log', iconType: 'circle' },
-      { id: 'machine-stoppages', label: 'Machine Stoppages', iconType: 'circle' },
+      { id: 'utilities-production', label: 'Utilities with Production', iconType: 'copy' },
+      { id: 'utilities-lotwise', label: 'Utilities with Lotwise Production', iconType: 'copy' },
+      { id: 'utilities-stoppage', label: 'Utilities with Stoppage', iconType: 'copy' },
+      { id: 'activity-log', label: 'Activity Log', iconType: 'copy' },
+      { id: 'machine-stoppages', label: 'Machine Stoppages', iconType: 'copy' },
     ],
   },
   {

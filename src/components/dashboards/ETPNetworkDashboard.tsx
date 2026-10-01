@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { LiveValue } from '../../lib/LiveTelemetry';
 
 export const ETPNetworkDashboard: React.FC = () => {
   const [selectedNode, setSelectedNode] = useState<string>('mbr');
@@ -25,7 +26,7 @@ export const ETPNetworkDashboard: React.FC = () => {
             <span className="metric-badge normal">INLET</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">235.0</span>
+            <LiveValue className="metric-number" value={235} seed={1} amplitude={1.8800} digits={1} />
             <span className="metric-unit">m³/h</span>
           </div>
           <div className="metric-footer">pH: 9.4 • COD: 1,850 mg/L</div>
@@ -37,7 +38,7 @@ export const ETPNetworkDashboard: React.FC = () => {
             <span className="metric-badge green">CLEAN REUSE</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">184.5</span>
+            <LiveValue className="metric-number" value={184.5} seed={2} amplitude={1.4760} digits={1} />
             <span className="metric-unit">m³/h</span>
           </div>
           <div className="metric-footer">Returned to Dyeing &amp; Boilers (TDS 38 ppm)</div>
@@ -49,7 +50,7 @@ export const ETPNetworkDashboard: React.FC = () => {
             <span className="metric-badge green">NEQS COMPLIANT</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">50.5</span>
+            <LiveValue className="metric-number" value={50.5} seed={3} amplitude={0.4040} digits={1} />
             <span className="metric-unit">m³/h</span>
           </div>
           <div className="metric-footer">COD: 135 mg/L • BOD: 38 mg/L</div>
@@ -61,7 +62,7 @@ export const ETPNetworkDashboard: React.FC = () => {
             <span className="metric-badge green">OPTIMAL</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">2.45</span>
+            <LiveValue className="metric-number" value={2.45} seed={4} amplitude={0.0500} digits={2} />
             <span className="metric-unit">mg/L</span>
           </div>
           <div className="metric-footer">4 Roots Blowers Active @ 45 Hz</div>

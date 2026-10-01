@@ -1,4 +1,5 @@
 import React from 'react';
+import { LiveValue } from '../../lib/LiveTelemetry';
 
 // Heat Exchanger Dashboard
 export const HeatExchangerDashboard: React.FC = () => (
@@ -21,7 +22,7 @@ export const HeatExchangerDashboard: React.FC = () => (
           <span className="metric-badge green">ACTIVE</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">3,850</span>
+          <LiveValue className="metric-number" value={3850} seed={1} amplitude={30.8000} digits={0} />
           <span className="metric-unit">kWth</span>
         </div>
         <div className="metric-footer">Saves ~420 m³/h Natural Gas</div>
@@ -33,7 +34,7 @@ export const HeatExchangerDashboard: React.FC = () => (
           <span className="metric-badge normal">DYE DRAIN</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">88.5</span>
+          <LiveValue className="metric-number" value={88.5} seed={2} amplitude={0.7080} digits={1} />
           <span className="metric-unit">°C</span>
         </div>
         <div className="metric-footer">Flow: 65.0 m³/h from Fong's vessels</div>
@@ -45,7 +46,7 @@ export const HeatExchangerDashboard: React.FC = () => (
           <span className="metric-badge green">PRE-HEATED</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">74.2</span>
+          <LiveValue className="metric-number" value={74.2} seed={3} amplitude={0.5936} digits={1} />
           <span className="metric-unit">°C</span>
         </div>
         <div className="metric-footer">Feeds Boiler deaerator &amp; dye wash</div>
@@ -57,7 +58,7 @@ export const HeatExchangerDashboard: React.FC = () => (
           <span className="metric-badge green">92% RECOVERY</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">28.4</span>
+          <LiveValue className="metric-number" value={28.4} seed={4} amplitude={0.2272} digits={1} />
           <span className="metric-unit">°Bé</span>
         </div>
         <div className="metric-footer">Mercerizing lye concentration plant</div>
@@ -138,7 +139,7 @@ export const GenesetDashboard: React.FC = () => (
           <span className="metric-badge green">RUNNING</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">7,620</span>
+          <LiveValue className="metric-number" value={7620} seed={5} amplitude={60.9600} digits={0} />
           <span className="metric-unit">kW</span>
         </div>
         <div className="metric-footer">Supplying 51.4% of plant electrical load</div>
@@ -150,7 +151,7 @@ export const GenesetDashboard: React.FC = () => (
           <span className="metric-badge green">44.2% ELEC</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">88.4</span>
+          <LiveValue className="metric-number" value={88.4} seed={6} amplitude={0.7072} digits={1} />
           <span className="metric-unit">% CHP</span>
         </div>
         <div className="metric-footer">Combined Heat &amp; Power with WHRB steam</div>
@@ -162,7 +163,7 @@ export const GenesetDashboard: React.FC = () => (
           <span className="metric-badge normal">SYNCHRONOUS</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">1,500</span>
+          <LiveValue className="metric-number" value={1500} seed={7} amplitude={12.0000} digits={0} />
           <span className="metric-unit">RPM</span>
         </div>
         <div className="metric-footer">Grid Sync 50.04 Hz • 0.98 Power Factor</div>
@@ -174,7 +175,7 @@ export const GenesetDashboard: React.FC = () => (
           <span className="metric-badge normal">RECOVERING</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">485</span>
+          <LiveValue className="metric-number" value={485} seed={8} amplitude={3.8800} digits={0} />
           <span className="metric-unit">°C</span>
         </div>
         <div className="metric-footer">Generates 7.5 TPH Steam via WHRB</div>
@@ -236,7 +237,7 @@ export const CompressorDashboard: React.FC = () => (
           <span className="metric-badge green">OPTIMAL</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">7.25</span>
+          <LiveValue className="metric-number" value={7.25} seed={9} amplitude={0.0580} digits={2} />
           <span className="metric-unit">Bar</span>
         </div>
         <div className="metric-footer">Target: 7.00 - 7.50 Bar across plant</div>
@@ -248,7 +249,7 @@ export const CompressorDashboard: React.FC = () => (
           <span className="metric-badge normal">DELIVERY</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">4,850</span>
+          <LiveValue className="metric-number" value={4850} seed={10} amplitude={38.8000} digits={0} />
           <span className="metric-unit">CFM</span>
         </div>
         <div className="metric-footer">VFD compressor trimming automatically</div>
@@ -272,7 +273,7 @@ export const CompressorDashboard: React.FC = () => (
           <span className="metric-badge green">HIGH EFFICIENCY</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">6.12</span>
+          <LiveValue className="metric-number" value={6.12} seed={11} amplitude={0.0500} digits={2} />
           <span className="metric-unit">kW / 100 CFM</span>
         </div>
         <div className="metric-footer">Power consumption: 1,940 kW</div>
@@ -367,7 +368,7 @@ export const HVACDashboard: React.FC = () => (
           <span className="metric-badge green">COMFORT / QC</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">25.4</span>
+          <LiveValue className="metric-number" value={25.4} seed={12} amplitude={0.2032} digits={1} />
           <span className="metric-unit">°C</span>
         </div>
         <div className="metric-footer">Setpoint: 25.0 ± 1.0 °C for ink viscosity</div>
@@ -379,7 +380,7 @@ export const HVACDashboard: React.FC = () => (
           <span className="metric-badge green">CONTROLLED</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">65.2</span>
+          <LiveValue className="metric-number" value={65.2} seed={13} amplitude={0.5216} digits={1} />
           <span className="metric-unit">% RH</span>
         </div>
         <div className="metric-footer">Prevents screen drying &amp; static sparks</div>
@@ -391,7 +392,7 @@ export const HVACDashboard: React.FC = () => (
           <span className="metric-badge normal">CIRCULATING</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">380</span>
+          <LiveValue className="metric-number" value={380} seed={14} amplitude={3.0400} digits={0} />
           <span className="metric-unit">m³/h</span>
         </div>
         <div className="metric-footer">Supply: 7.2°C • Return: 12.4°C</div>
@@ -433,7 +434,7 @@ export const GridDashboard: React.FC = () => (
           <span className="metric-badge green">ONLINE</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">4,200</span>
+          <LiveValue className="metric-number" value={4200} seed={15} amplitude={33.6000} digits={0} />
           <span className="metric-unit">kW</span>
         </div>
         <div className="metric-footer">Sanctioned Load: 8,000 kW (KE Feeder 1)</div>
@@ -445,7 +446,7 @@ export const GridDashboard: React.FC = () => (
           <span className="metric-badge green">OPTIMAL</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">0.985</span>
+          <LiveValue className="metric-number" value={0.985} seed={16} amplitude={0.0500} digits={2} />
           <span className="metric-unit">PF</span>
         </div>
         <div className="metric-footer">Zero penalty tariff (Threshold &gt; 0.90)</div>
@@ -457,7 +458,7 @@ export const GridDashboard: React.FC = () => (
           <span className="metric-badge normal">NORMAL</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">11.18</span>
+          <LiveValue className="metric-number" value={11.18} seed={17} amplitude={0.0894} digits={2} />
           <span className="metric-unit">kV</span>
         </div>
         <div className="metric-footer">Phase unbalance: 0.38% (Permitted &lt; 2%)</div>
@@ -499,7 +500,7 @@ export const SolarPVDashboard: React.FC = () => (
           <span className="metric-badge green">PEAK SUN</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">3,000</span>
+          <LiveValue className="metric-number" value={3000} seed={18} amplitude={24.0000} digits={0} />
           <span className="metric-unit">kW</span>
         </div>
         <div className="metric-footer">Installed capacity: 3,500 kWp (85.7% Output)</div>
@@ -511,7 +512,7 @@ export const SolarPVDashboard: React.FC = () => (
           <span className="metric-badge normal">CLEAR SKY</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">895</span>
+          <LiveValue className="metric-number" value={895} seed={19} amplitude={7.1600} digits={0} />
           <span className="metric-unit">W/m²</span>
         </div>
         <div className="metric-footer">Ambient Temp: 30°C • Module Temp: 48.5°C</div>
@@ -523,7 +524,7 @@ export const SolarPVDashboard: React.FC = () => (
           <span className="metric-badge green">ACCUMULATING</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">16.4</span>
+          <LiveValue className="metric-number" value={16.4} seed={20} amplitude={0.1312} digits={1} />
           <span className="metric-unit">MWh</span>
         </div>
         <div className="metric-footer">Projected daily total: ~22.5 MWh</div>
@@ -535,7 +536,7 @@ export const SolarPVDashboard: React.FC = () => (
           <span className="metric-badge green">ESG GREEN</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">12.8</span>
+          <LiveValue className="metric-number" value={12.8} seed={21} amplitude={0.1024} digits={1} />
           <span className="metric-unit">Tons</span>
         </div>
         <div className="metric-footer">Equivalent to 620 trees planted</div>
@@ -565,7 +566,7 @@ export const ChillersDashboard: React.FC = () => (
           <span className="metric-badge green">RUNNING</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">1,850</span>
+          <LiveValue className="metric-number" value={1850} seed={22} amplitude={14.8000} digits={0} />
           <span className="metric-unit">TR</span>
         </div>
         <div className="metric-footer">Total plant cooling load: 1,420 TR</div>
@@ -577,7 +578,7 @@ export const ChillersDashboard: React.FC = () => (
           <span className="metric-badge green">CHILLED</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">6.8</span>
+          <LiveValue className="metric-number" value={6.8} seed={23} amplitude={0.0544} digits={1} />
           <span className="metric-unit">°C</span>
         </div>
         <div className="metric-footer">Return Temp: 12.2°C (ΔT = 5.4°C)</div>
@@ -589,7 +590,7 @@ export const ChillersDashboard: React.FC = () => (
           <span className="metric-badge normal">WATER</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">29.4</span>
+          <LiveValue className="metric-number" value={29.4} seed={24} amplitude={0.2352} digits={1} />
           <span className="metric-unit">°C</span>
         </div>
         <div className="metric-footer">Induced draft cooling towers: 4 of 4 active</div>
@@ -601,7 +602,7 @@ export const ChillersDashboard: React.FC = () => (
           <span className="metric-badge green">STEAM DRIVEN</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">600</span>
+          <LiveValue className="metric-number" value={600} seed={25} amplitude={4.8000} digits={0} />
           <span className="metric-unit">TR</span>
         </div>
         <div className="metric-footer">Runs on low-pressure boiler waste steam</div>
@@ -631,7 +632,7 @@ export const WaterPumpDashboard: React.FC = () => (
           <span className="metric-badge green">PUMPING</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">142</span>
+          <LiveValue className="metric-number" value={142} seed={26} amplitude={1.1360} digits={0} />
           <span className="metric-unit">m³/h</span>
         </div>
         <div className="metric-footer">3 Turbine pumps operating @ 45 Hz VFD</div>
@@ -643,7 +644,7 @@ export const WaterPumpDashboard: React.FC = () => (
           <span className="metric-badge green">BOOSTING</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">95.0</span>
+          <LiveValue className="metric-number" value={95} seed={27} amplitude={0.7600} digits={1} />
           <span className="metric-unit">m³/h</span>
         </div>
         <div className="metric-footer">Pressure: 4.8 Bar to Dyeing House</div>
@@ -655,7 +656,7 @@ export const WaterPumpDashboard: React.FC = () => (
           <span className="metric-badge green">PRESSURIZED</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">10.5</span>
+          <LiveValue className="metric-number" value={10.5} seed={28} amplitude={0.0840} digits={1} />
           <span className="metric-unit">Bar</span>
         </div>
         <div className="metric-footer">Standby diesel fire pump test: Passed</div>
@@ -667,7 +668,7 @@ export const WaterPumpDashboard: React.FC = () => (
           <span className="metric-badge normal">CAPACITY</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">88.5</span>
+          <LiveValue className="metric-number" value={88.5} seed={29} amplitude={0.7080} digits={1} />
           <span className="metric-unit">%</span>
         </div>
         <div className="metric-footer">Volume: 1,850,000 Liters (18h buffer)</div>
@@ -697,7 +698,7 @@ export const ETPDashboard: React.FC = () => (
           <span className="metric-badge green">NEQS PASS</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">7.35</span>
+          <LiveValue className="metric-number" value={7.35} seed={30} amplitude={0.0588} digits={2} />
           <span className="metric-unit">pH</span>
         </div>
         <div className="metric-footer">Permitted limit: 6.0 - 9.0 pH</div>
@@ -709,7 +710,7 @@ export const ETPDashboard: React.FC = () => (
           <span className="metric-badge green">COMPLIANT</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">135</span>
+          <LiveValue className="metric-number" value={135} seed={31} amplitude={1.0800} digits={0} />
           <span className="metric-unit">mg/L</span>
         </div>
         <div className="metric-footer">NEQS Standard: &lt; 150 mg/L (Inlet: 1850)</div>
@@ -721,7 +722,7 @@ export const ETPDashboard: React.FC = () => (
           <span className="metric-badge green">COMPLIANT</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">38.0</span>
+          <LiveValue className="metric-number" value={38} seed={32} amplitude={0.3040} digits={1} />
           <span className="metric-unit">mg/L</span>
         </div>
         <div className="metric-footer">NEQS Standard: &lt; 80 mg/L (Reduction 96%)</div>
@@ -733,7 +734,7 @@ export const ETPDashboard: React.FC = () => (
           <span className="metric-badge green">COMPLIANT</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">42.0</span>
+          <LiveValue className="metric-number" value={42} seed={33} amplitude={0.3360} digits={1} />
           <span className="metric-unit">mg/L</span>
         </div>
         <div className="metric-footer">NEQS Standard: &lt; 200 mg/L</div>
@@ -763,7 +764,7 @@ export const RODashboard: React.FC = () => (
           <span className="metric-badge green">DELIVERING</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">120.5</span>
+          <LiveValue className="metric-number" value={120.5} seed={34} amplitude={0.9640} digits={1} />
           <span className="metric-unit">m³/h</span>
         </div>
         <div className="metric-footer">Reject Flow: 33.0 m³/h to Evaporator</div>
@@ -775,7 +776,7 @@ export const RODashboard: React.FC = () => (
           <span className="metric-badge green">PURE WATER</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">38.5</span>
+          <LiveValue className="metric-number" value={38.5} seed={35} amplitude={0.3080} digits={1} />
           <span className="metric-unit">ppm</span>
         </div>
         <div className="metric-footer">Inlet Feed TDS: 1,840 ppm (97.9% Salt Rejection)</div>
@@ -787,7 +788,7 @@ export const RODashboard: React.FC = () => (
           <span className="metric-badge normal">NORMAL</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">14.8</span>
+          <LiveValue className="metric-number" value={14.8} seed={36} amplitude={0.1184} digits={1} />
           <span className="metric-unit">Bar</span>
         </div>
         <div className="metric-footer">Grundfos CRN multistage booster active</div>
@@ -799,7 +800,7 @@ export const RODashboard: React.FC = () => (
           <span className="metric-badge green">HEALTHY</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">98.2</span>
+          <LiveValue className="metric-number" value={98.2} seed={37} amplitude={0.7856} digits={1} />
           <span className="metric-unit">%</span>
         </div>
         <div className="metric-footer">Next CIP (Clean-in-place) in 28 days</div>
@@ -829,7 +830,7 @@ export const DevicesDashboard: React.FC = () => (
           <span className="metric-badge green">ONLINE</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">1,480</span>
+          <LiveValue className="metric-number" value={1480} seed={38} amplitude={11.8400} digits={0} />
           <span className="metric-unit">Nodes</span>
         </div>
         <div className="metric-footer">Energy meters, thermal probes, flow transmitters</div>
@@ -841,7 +842,7 @@ export const DevicesDashboard: React.FC = () => (
           <span className="metric-badge green">ULTRA-FAST</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">12</span>
+          <LiveValue className="metric-number" value={12} seed={39} amplitude={0.0960} digits={0} />
           <span className="metric-unit">ms</span>
         </div>
         <div className="metric-footer">Packet Loss: 0.00% • 10 Gbps Fiber Ring</div>
@@ -865,7 +866,7 @@ export const DevicesDashboard: React.FC = () => (
           <span className="metric-badge green">UNINTERRUPTED</span>
         </div>
         <div className="metric-body">
-          <span className="metric-number">184</span>
+          <LiveValue className="metric-number" value={184} seed={40} amplitude={1.4720} digits={0} />
           <span className="metric-unit">Days</span>
         </div>
         <div className="metric-footer">Zero unpredicted downtime in 2026</div>

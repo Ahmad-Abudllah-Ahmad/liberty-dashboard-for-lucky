@@ -1,20 +1,37 @@
 import React from 'react';
+import { ShareBarChart, TrendSpark } from '../charts/PortalCharts';
+import { ScadaContentHeader } from '../portal/ScadaContentHeader';
+import { formatNumber, wobble } from '../../lib/liveValue';
+import { useTelemetryTick } from '../../lib/LiveTelemetry';
 
 export const SteamFlowDashboard: React.FC = () => {
+  const tick = useTelemetryTick();
+  const total = wobble(42.5, tick, 0.35, 1);
+  const pressure = wobble(10.24, tick, 0.04, 2);
+  const temp = wobble(184.2, tick, 0.25, 3);
+  const condensate = wobble(78.4, tick, 0.3, 4);
+  const b1 = wobble(18.2, tick, 0.15, 5);
+  const b2 = wobble(16.8, tick, 0.15, 6);
+  const whrb = wobble(7.5, tick, 0.1, 7);
+  const dyeing = wobble(17.8, tick, 0.2, 8);
+  const stenter = wobble(11.6, tick, 0.15, 9);
+  const printing = wobble(9.4, tick, 0.12, 10);
+  const bleach = wobble(3.3, tick, 0.08, 11);
+  const consumerTotal = dyeing + stenter + printing + bleach;
+  const trend = Array.from({ length: 24 }, (_, index) => wobble(42.2, tick + index, 0.8, index));
 
   return (
     <div className="dashboard-content">
-      {/* Header */}
-      <div className="content-header-row">
-        <div>
-          <h2>Steam Flow & Thermal Energy Distribution</h2>
-          <p className="content-subtitle">Liberty Mills Limited • Central Steam Headers, Boilers & Process Lines</p>
-        </div>
-        <div className="header-actions-group">
-          <span className="badge-tag green">STEAM BALANCE: BALANCED (±0.4%)</span>
-          <button className="btn-export">Export Enthalpy Report</button>
-        </div>
-      </div>
+      <ScadaContentHeader
+        title="Steam Flow & Thermal Energy Distribution"
+        subtitle="Liberty Mills Limited • Central Steam Headers, Boilers & Process Lines"
+        actions={
+          <>
+            <span className="badge-tag green">STEAM BALANCE: BALANCED (±0.4%)</span>
+            <button type="button" className="btn-export">Export Enthalpy Report</button>
+          </>
+        }
+      />
 
       {/* KPI Cards */}
       <div className="metric-cards-row">
@@ -24,11 +41,11 @@ export const SteamFlowDashboard: React.FC = () => {
             <span className="metric-badge green">NORMAL</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">42.50</span>
+            <span className="metric-number">{formatNumber(total)}</span>
             <span className="metric-unit">TPH</span>
           </div>
           <div className="metric-footer">
-            Boiler 1: 18.2 • Boiler 2: 16.8 • WHRB: 7.5 TPH
+            Boiler 1: {formatNumber(b1, 1)} • Boiler 2: {formatNumber(b2, 1)} • WHRB: {formatNumber(whrb, 1)} TPH
           </div>
         </div>
 
@@ -38,7 +55,7 @@ export const SteamFlowDashboard: React.FC = () => {
             <span className="metric-badge green">STABLE</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">10.24</span>
+            <span className="metric-number">{formatNumber(pressure)}</span>
             <span className="metric-unit">Bar</span>
           </div>
           <div className="metric-footer">
@@ -52,7 +69,7 @@ export const SteamFlowDashboard: React.FC = () => {
             <span className="metric-badge normal">SATURATED</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">184.2</span>
+            <span className="metric-number">{formatNumber(temp, 1)}</span>
             <span className="metric-unit">°C</span>
           </div>
           <div className="metric-footer">
@@ -66,7 +83,7 @@ export const SteamFlowDashboard: React.FC = () => {
             <span className="metric-badge green">HIGH EFFICIENCY</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">78.4</span>
+            <span className="metric-number">{formatNumber(condensate, 1)}</span>
             <span className="metric-unit">%</span>
           </div>
           <div className="metric-footer">
@@ -83,6 +100,7 @@ export const SteamFlowDashboard: React.FC = () => {
             <h3>Steam Generation Sources</h3>
             <span className="badge-tag">3 Operating Units</span>
           </div>
+          <TrendSpark points={trend} color="#2563eb" unit="TPH" />
 
           <div className="sources-breakdown">
             <div className="boiler-unit-row">
@@ -94,7 +112,7 @@ export const SteamFlowDashboard: React.FC = () => {
                 <span className="badge-status-running">RUNNING</span>
               </div>
               <div className="b-metrics-grid">
-                <div><span>Flow Rate:</span> <strong className="font-mono">18.2 TPH</strong></div>
+                <div><span>Flow Rate:</span> <strong className="font-mono">{formatNumber(b1, 1)} TPH</strong></div>
                 <div><span>Pressure:</span> <strong className="font-mono">10.4 Bar</strong></div>
                 <div><span>Stack Temp:</span> <strong className="font-mono">152 °C</strong></div>
                 <div><span>O₂ Excess:</span> <strong className="font-mono">3.4%</strong></div>
@@ -110,7 +128,7 @@ export const SteamFlowDashboard: React.FC = () => {
                 <span className="badge-status-running">RUNNING</span>
               </div>
               <div className="b-metrics-grid">
-                <div><span>Flow Rate:</span> <strong className="font-mono">16.8 TPH</strong></div>
+                <div><span>Flow Rate:</span> <strong className="font-mono">{formatNumber(b2, 1)} TPH</strong></div>
                 <div><span>Pressure:</span> <strong className="font-mono">10.3 Bar</strong></div>
                 <div><span>Stack Temp:</span> <strong className="font-mono">164 °C</strong></div>
                 <div><span>O₂ Excess:</span> <strong className="font-mono">3.8%</strong></div>
@@ -126,7 +144,7 @@ export const SteamFlowDashboard: React.FC = () => {
                 <span className="badge-status-running">OPTIMAL RECOVERY</span>
               </div>
               <div className="b-metrics-grid">
-                <div><span>Flow Rate:</span> <strong className="font-mono">7.5 TPH</strong></div>
+                <div><span>Flow Rate:</span> <strong className="font-mono">{formatNumber(whrb, 1)} TPH</strong></div>
                 <div><span>Pressure:</span> <strong className="font-mono">9.8 Bar</strong></div>
                 <div><span>Inlet Gas:</span> <strong className="font-mono">485 °C</strong></div>
                 <div><span>Outlet Gas:</span> <strong className="font-mono">142 °C</strong></div>
@@ -139,50 +157,18 @@ export const SteamFlowDashboard: React.FC = () => {
         <div className="scada-panel">
           <div className="panel-title-bar">
             <h3>Departmental Steam Consumers</h3>
-            <span className="badge-tag">Total: 42.1 TPH</span>
+            <span className="badge-tag">Total: {formatNumber(consumerTotal, 1)} TPH</span>
           </div>
 
-          <div className="consumer-list">
-            <div className="consumer-item">
-              <div className="consumer-header">
-                <span className="c-name">Dyeing House (Fong's, Thies, Jiggers)</span>
-                <span className="c-flow font-mono">17.8 TPH (42.3%)</span>
-              </div>
-              <div className="source-bar">
-                <div className="source-fill dye-fill" style={{ width: '42.3%' }}></div>
-              </div>
-            </div>
-
-            <div className="consumer-item">
-              <div className="consumer-header">
-                <span className="c-name">Stenter Finishing Frames (Stenter-24, Stenter-21)</span>
-                <span className="c-flow font-mono">11.6 TPH (27.5%)</span>
-              </div>
-              <div className="source-bar">
-                <div className="source-fill stenter-fill" style={{ width: '27.5%' }}></div>
-              </div>
-            </div>
-
-            <div className="consumer-item">
-              <div className="consumer-header">
-                <span className="c-name">Printing Mill (Loop Steam Agers, Dryers)</span>
-                <span className="c-flow font-mono">9.4 TPH (22.3%)</span>
-              </div>
-              <div className="source-bar">
-                <div className="source-fill print-fill" style={{ width: '22.3%' }}></div>
-              </div>
-            </div>
-
-            <div className="consumer-item">
-              <div className="consumer-header">
-                <span className="c-name">Desizing, Bleaching & Mercerizing</span>
-                <span className="c-flow font-mono">3.3 TPH (7.9%)</span>
-              </div>
-              <div className="source-bar">
-                <div className="source-fill other-fill" style={{ width: '7.9%' }}></div>
-              </div>
-            </div>
-          </div>
+          <ShareBarChart
+            layout="consumer"
+            rows={[
+              { label: "Dyeing House (Fong's, Thies, Jiggers)", value: dyeing, fillClass: 'dye-fill', unit: 'TPH' },
+              { label: 'Stenter Finishing Frames (Stenter-24, Stenter-21)', value: stenter, fillClass: 'stenter-fill', unit: 'TPH' },
+              { label: 'Printing Mill (Loop Steam Agers, Dryers)', value: printing, fillClass: 'print-fill', unit: 'TPH' },
+              { label: 'Desizing, Bleaching & Mercerizing', value: bleach, fillClass: 'other-fill', unit: 'TPH' },
+            ]}
+          />
 
           <div className="steam-safety-card">
             <h4>Steam Safety & Enthalpy Efficiency</h4>

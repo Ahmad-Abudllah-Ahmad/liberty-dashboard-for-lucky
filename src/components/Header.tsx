@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   IconHamburger,
   IconChatBubble,
@@ -28,6 +28,22 @@ export const Header: React.FC<HeaderProps> = ({
 
   const unacknowledgedAlarms = alarms.filter((a) => !a.acknowledged);
 
+  const quickAlarms = useMemo(() => {
+    const unack = alarms.filter((a) => !a.acknowledged);
+    const ack = alarms.filter((a) => a.acknowledged);
+    return [...unack, ...ack].slice(0, 5);
+  }, [alarms]);
+
+  const unackSeverityCounts = useMemo(
+    () => ({
+      critical: unacknowledgedAlarms.filter((a) => a.severity === 'critical').length,
+      major: unacknowledgedAlarms.filter((a) => a.severity === 'major').length,
+      minor: unacknowledgedAlarms.filter((a) => a.severity === 'minor').length,
+      info: unacknowledgedAlarms.filter((a) => a.severity === 'info').length,
+    }),
+    [unacknowledgedAlarms],
+  );
+
   return (
     <>
       <header className="main-header">
@@ -54,11 +70,14 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           </div>
 
-          {/* Bell Icon with red badge (140) */}
+          {/* Bell Icon with unacknowledged alarm count */}
           <div className="header-action-item" onClick={() => setShowAlarmQuickView(!showAlarmQuickView)}>
-            <button className="btn-header-icon" title="Active Plant Alarms (140)">
+            <button
+              className="btn-header-icon"
+              title={`Active Plant Alarms (${unacknowledgedAlarms.length} unacknowledged)`}
+            >
               <IconBell size={20} className="icon-bell" />
-              <span className="badge-bell-red">140</span>
+              <span className="badge-bell-red">{unacknowledgedAlarms.length}</span>
             </button>
           </div>
 
@@ -74,32 +93,69 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Alarm Quick Dropdown */}
       {showAlarmQuickView && (
         <div className="quick-dropdown alarm-dropdown">
-          <div className="dropdown-header">
-            <h4>Active SCADA Alarms ({unacknowledgedAlarms.length} Unacknowledged)</h4>
-            <button className="btn-close-dropdown" onClick={() => setShowAlarmQuickView(false)}>✕</button>
+          <div className="dropdown-header alarm-dropdown-head">
+            <div className="alarm-dropdown-head-text">
+              <h4>Active SCADA Alarms</h4>
+              <p className="alarm-dropdown-sub">
+                {unacknowledgedAlarms.length} unacknowledged · {alarms.length} total
+              </p>
+            </div>
+            <button
+              type="button"
+              className="btn-close-dropdown"
+              onClick={() => setShowAlarmQuickView(false)}
+              aria-label="Close alarms panel"
+            >
+              ✕
+            </button>
           </div>
-          <div className="dropdown-list">
-            {alarms.slice(0, 5).map((alm) => (
-              <div key={alm.id} className={`dropdown-alarm-item ${alm.severity}`}>
-                <div className="alm-dot"></div>
+          <div className="alarm-severity-strip" aria-label="Unacknowledged by severity">
+            <span className="alarm-sev-pill critical">{unackSeverityCounts.critical} Critical</span>
+            <span className="alarm-sev-pill major">{unackSeverityCounts.major} Major</span>
+            <span className="alarm-sev-pill minor">{unackSeverityCounts.minor} Minor</span>
+            <span className="alarm-sev-pill info">{unackSeverityCounts.info} Info</span>
+          </div>
+          <div className="dropdown-list alarm-dropdown-list">
+            {quickAlarms.map((alm) => (
+              <div
+                key={alm.id}
+                className={`dropdown-alarm-item ${alm.severity} ${alm.acknowledged ? 'is-ack' : 'is-unack'}`}
+                tabIndex={0}
+              >
+                <span className={`alarm-sev-badge ${alm.severity}`}>{alm.severity}</span>
                 <div className="alm-details">
-                  <span className="alm-tag">{alm.tag} • {alm.area}</span>
+                  <div className="alm-top-row">
+                    <span className="alm-tag-line">
+                      <span className="alm-tag">
+                        {alm.tag} · {alm.area}
+                      </span>
+                      {!alm.acknowledged ? <span className="alm-unack-badge">Unack</span> : null}
+                    </span>
+                    <span className="alm-time">{alm.timestamp.replace('Today ', '')}</span>
+                  </div>
                   <p className="alm-desc">{alm.description}</p>
-                  <span className="alm-val">Val: <strong>{alm.value}</strong> (SP: {alm.setpoint})</span>
+                  <div className="alm-metrics">
+                    <span className="alm-val">
+                      PV <strong className="font-mono">{alm.value}</strong>
+                    </span>
+                    <span className="alm-val-sp">
+                      SP <span className="font-mono">{alm.setpoint}</span>
+                    </span>
+                  </div>
                 </div>
-                <span className="alm-time">{alm.timestamp.replace('Today ', '')}</span>
               </div>
             ))}
           </div>
-          <div className="dropdown-footer">
+          <div className="dropdown-footer alarm-dropdown-footer">
             <button
+              type="button"
               className="btn-view-all-alarms"
               onClick={() => {
                 setShowAlarmQuickView(false);
                 onOpenAlarms();
               }}
             >
-              Open Full Alarm Console (140 Alarms) →
+              Open Full Alarm Console ({alarms.length} Alarms) →
             </button>
           </div>
         </div>

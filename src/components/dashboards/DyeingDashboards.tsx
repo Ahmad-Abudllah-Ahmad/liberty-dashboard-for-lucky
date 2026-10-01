@@ -1,4 +1,5 @@
 import React from 'react';
+import { LiveValue } from '../../lib/LiveTelemetry';
 
 export const DyeingQualityDashboard: React.FC = () => {
   return (
@@ -21,7 +22,7 @@ export const DyeingQualityDashboard: React.FC = () => {
             <span className="metric-badge green">STABILIZED</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">6.24</span>
+            <LiveValue className="metric-number" value={6.24} seed={1} amplitude={0.0500} digits={2} />
             <span className="metric-unit">pH</span>
           </div>
           <div className="metric-footer">
@@ -49,7 +50,7 @@ export const DyeingQualityDashboard: React.FC = () => {
             <span className="metric-badge normal">DOSING</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">45.0</span>
+            <LiveValue className="metric-number" value={45} seed={2} amplitude={0.3600} digits={1} />
             <span className="metric-unit">g/L</span>
           </div>
           <div className="metric-footer">
@@ -63,7 +64,7 @@ export const DyeingQualityDashboard: React.FC = () => {
             <span className="metric-badge green">GRADE 5</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">0.35</span>
+            <LiveValue className="metric-number" value={0.35} seed={3} amplitude={0.0500} digits={2} />
             <span className="metric-unit">ΔE</span>
           </div>
           <div className="metric-footer">
@@ -200,7 +201,7 @@ export const DyeingLiveMonitoringDashboard: React.FC = () => {
             <span className="metric-badge normal">CONSUMING</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">17.8</span>
+            <LiveValue className="metric-number" value={17.8} seed={4} amplitude={0.1424} digits={1} />
             <span className="metric-unit">TPH</span>
           </div>
           <div className="metric-footer">
@@ -214,7 +215,7 @@ export const DyeingLiveMonitoringDashboard: React.FC = () => {
             <span className="metric-badge green">HEAT EXCHANGER</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">84.2</span>
+            <LiveValue className="metric-number" value={84.2} seed={5} amplitude={0.6736} digits={1} />
             <span className="metric-unit">°C</span>
           </div>
           <div className="metric-footer">
@@ -228,7 +229,7 @@ export const DyeingLiveMonitoringDashboard: React.FC = () => {
             <span className="metric-badge blue">RO WATER</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">84.5</span>
+            <LiveValue className="metric-number" value={84.5} seed={6} amplitude={0.6760} digits={1} />
             <span className="metric-unit">m³/h</span>
           </div>
           <div className="metric-footer">

@@ -9,6 +9,9 @@ lerna-debug.log*
 
 node_modules
 dist
+# Stale emit artifacts must not shadow .tsx (Vite resolves .js first by default)
+src/**/*.js
+!src/**/*.config.js
 dist-ssr
 *.local
 

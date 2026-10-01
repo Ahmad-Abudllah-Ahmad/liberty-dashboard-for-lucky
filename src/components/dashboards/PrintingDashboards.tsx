@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { LiveValue } from '../../lib/LiveTelemetry';
 import { mockMachines } from '../../data/mockPlantData';
 
 export const PrintingQualityDashboard: React.FC = () => {
@@ -22,7 +23,7 @@ export const PrintingQualityDashboard: React.FC = () => {
             <span className="metric-badge green">EXCELLENT</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">0.42</span>
+            <LiveValue className="metric-number" value={0.42} seed={1} amplitude={0.0500} digits={2} />
             <span className="metric-unit">ΔE</span>
           </div>
           <div className="metric-footer">
@@ -36,7 +37,7 @@ export const PrintingQualityDashboard: React.FC = () => {
             <span className="metric-badge green">ALIGNED</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">0.08</span>
+            <LiveValue className="metric-number" value={0.08} seed={2} amplitude={0.0500} digits={2} />
             <span className="metric-unit">mm</span>
           </div>
           <div className="metric-footer">
@@ -50,7 +51,7 @@ export const PrintingQualityDashboard: React.FC = () => {
             <span className="metric-badge normal">OPTIMAL</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">4,250</span>
+            <LiveValue className="metric-number" value={4250} seed={3} amplitude={34.0000} digits={0} />
             <span className="metric-unit">cP</span>
           </div>
           <div className="metric-footer">
@@ -64,7 +65,7 @@ export const PrintingQualityDashboard: React.FC = () => {
             <span className="metric-badge green">STABILIZED</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">145.0</span>
+            <LiveValue className="metric-number" value={145} seed={4} amplitude={1.1600} digits={1} />
             <span className="metric-unit">°C</span>
           </div>
           <div className="metric-footer">

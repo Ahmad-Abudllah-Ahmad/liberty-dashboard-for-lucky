@@ -36,6 +36,7 @@ import {
 import { mockAlarmsList } from './data/mockPlantData';
 import type { AlarmRecord } from './types';
 import './App.css';
+import { LiveTelemetryProvider } from './lib/LiveTelemetry';
 
 export const App: React.FC = () => {
   // Navigation State
@@ -49,6 +50,8 @@ export const App: React.FC = () => {
     dashboard: true,
     printing: true,
     dyeing: true,
+    utilities: true,
+    boilers: true,
   });
 
   // Alarms State (140 Alarms)
@@ -103,11 +106,13 @@ export const App: React.FC = () => {
       case 'panel-temperature':
         return <PanelTemperatureDashboard />;
       case 'printing-quality':
+        return <QualityParametersPage unit="printing" />;
       case 'dyeing-quality':
-        return <QualityParametersPage />;
+        return <QualityParametersPage unit="dyeing" />;
       case 'printing-live':
+        return <LiveMonitoringPage unit="printing" />;
       case 'dyeing-live':
-        return <LiveMonitoringPage />;
+        return <LiveMonitoringPage unit="dyeing" />;
       case 'alarms':
         return (
           <AlarmsDashboard
@@ -188,6 +193,7 @@ export const App: React.FC = () => {
           collapsed={sidebarCollapsed}
           openMenus={openMenus}
           toggleMenu={toggleMenu}
+          alarmBadgeCount={unacknowledgedCount}
         />
 
         {/* Main Content Area */}
@@ -203,7 +209,9 @@ export const App: React.FC = () => {
 
           {/* Scrollable Dashboard View */}
           <main className="main-content-scroll">
-            {renderActiveDashboard()}
+            <LiveTelemetryProvider intervalMs={2000}>
+              {renderActiveDashboard()}
+            </LiveTelemetryProvider>
           </main>
         </div>
       </div>
