@@ -18,6 +18,7 @@ dist-ssr
 # Local reference screenshots (not part of the app)
 ref img
 ref img/
+Reference Images/
 
 # Editor directories and files
 .vscode/*
