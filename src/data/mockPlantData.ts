@@ -14,8 +14,8 @@ export const navigationMenu: NavigationItem[] = [
     ],
   },
   {
-    id: 'ltm-40',
-    label: 'LTM 40',
+    id: 'ltm-4',
+    label: 'LTM 4',
     icon: 'dyeing',
     hasSubmenu: true,
     subitems: [

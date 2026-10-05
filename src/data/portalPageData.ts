@@ -284,7 +284,7 @@ export const liveMachines: MonitorMachine[] = [
 
 const qualityNames = new Set(qualityMachines.map((machine) => machine.name));
 
-export const ltm40Machines: MonitorMachine[] = [
+export const ltm4Machines: MonitorMachine[] = [
   ...qualityMachines,
   ...liveMachines.map((machine) => ({
     ...machine,

@@ -39,12 +39,12 @@ import './App.css';
 
 export const App: React.FC = () => {
   // Navigation State
-  const [activeId, setActiveId] = useState<string>('dyeing-quality');
+  const [activeId, setActiveId] = useState<string>('energy-dashboard');
 
   // Submenus state: In screenshot 2, Dashboard, Printing, and Dyeing are expanded
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({
     dashboard: true,
-    'ltm-40': true,
+    'ltm-4': true,
   });
 
   // Alarms State (140 Alarms)

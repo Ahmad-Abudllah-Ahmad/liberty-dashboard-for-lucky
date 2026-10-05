@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { AxisBarChart, RingGauge, SliceChart } from '../charts/PortalCharts';
 import { SplitMonitor } from '../scada/SplitMonitor';
 import {
-  ltm40Machines,
+  ltm4Machines,
   compressorMachines,
   solarMachines,
   chillerMachines,
@@ -22,9 +22,9 @@ export const QualityParametersPage: React.FC = () => (
   <SplitMonitor
     title="Quality Parameters Checking"
     breadcrumb="Quality Parameters Checking"
-    machines={ltm40Machines}
-    listHeader="LTM 40"
-    parentLabel="LTM 40"
+    machines={ltm4Machines}
+    listHeader="LTM 4"
+    parentLabel="LTM 4"
     mode="quality"
     defaultId="bleaching-01"
   />
@@ -34,9 +34,9 @@ export const LiveMonitoringPage: React.FC = () => (
   <SplitMonitor
     title="Live Monitoring"
     breadcrumb="Live Monitoring"
-    machines={ltm40Machines}
-    listHeader="LTM 40"
-    parentLabel="LTM 40"
+    machines={ltm4Machines}
+    listHeader="LTM 4"
+    parentLabel="LTM 4"
     mode="tags"
     defaultId="bleaching-01-live"
   />
