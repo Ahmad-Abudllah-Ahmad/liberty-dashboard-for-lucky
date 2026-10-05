@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  IconHamburger,
   IconChatBubble,
   IconBell,
   IconGridLauncher,
@@ -8,16 +7,12 @@ import {
 import type { AlarmRecord } from '../types';
 
 interface HeaderProps {
-  breadcrumb: string;
-  onToggleSidebar: () => void;
   alarms: AlarmRecord[];
   onOpenAlarms: () => void;
   onNavigate: (id: string, breadcrumb: string) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  breadcrumb,
-  onToggleSidebar,
   alarms,
   onOpenAlarms,
   onNavigate,
@@ -32,17 +27,11 @@ export const Header: React.FC<HeaderProps> = ({
     <>
       <header className="main-header">
         <div className="header-left">
-          <button
-            className="btn-hamburger"
-            onClick={onToggleSidebar}
-            title="Toggle Sidebar"
-            aria-label="Toggle Navigation Menu"
-          >
-            <IconHamburger size={20} />
-          </button>
-          <div className="header-breadcrumb" onClick={() => onNavigate('home', 'Home')}>
-            <span>{breadcrumb || 'Home'}</span>
-          </div>
+          <img
+            className="header-logo"
+            src="/lucky-textile-logo.png"
+            alt="Lucky Textile Mills Limited"
+          />
         </div>
 
         <div className="header-right">
@@ -64,7 +53,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Grid / Module Launcher */}
           <div className="header-action-item" onClick={() => setShowAppLauncher(!showAppLauncher)}>
-            <button className="btn-header-icon" title="Liberty Plant Modules Launcher">
+            <button className="btn-header-icon" title="Lucky Textile Modules Launcher">
               <IconGridLauncher size={17} className="icon-grid" />
             </button>
           </div>
@@ -132,7 +121,7 @@ export const Header: React.FC<HeaderProps> = ({
       {showAppLauncher && (
         <div className="quick-dropdown launcher-dropdown">
           <div className="dropdown-header">
-            <h4>Liberty Mills SCADA Modules</h4>
+            <h4>Lucky Textile SCADA Modules</h4>
             <button className="btn-close-dropdown" onClick={() => setShowAppLauncher(false)}>✕</button>
           </div>
           <div className="module-grid">

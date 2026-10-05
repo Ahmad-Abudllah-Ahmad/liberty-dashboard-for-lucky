@@ -45,7 +45,7 @@ export const AlarmsDashboard: React.FC<AlarmsDashboardProps> = ({
       <div className="content-header-row">
         <div>
           <h2>Central SCADA Alarms & Event Management Console</h2>
-          <p className="content-subtitle">Liberty Mills Limited • Real-time ISA-18.2 Plant-wide Alarm Monitoring (140 Total Alarms)</p>
+          <p className="content-subtitle">Lucky Textile • Real-time ISA-18.2 Plant-wide Alarm Monitoring (140 Total Alarms)</p>
         </div>
         <div className="header-actions-group">
           <button

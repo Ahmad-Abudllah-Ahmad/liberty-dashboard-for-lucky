@@ -8,7 +8,7 @@ export const BoilersDashboard: React.FC = () => {
       <div className="content-header-row">
         <div>
           <h2>Boiler House SCADA & Steam Generation Plant</h2>
-          <p className="content-subtitle">Liberty Mills Limited • Central High-Pressure Steam Boilers & Heat Recovery</p>
+          <p className="content-subtitle">Lucky Textile • Central High-Pressure Steam Boilers & Heat Recovery</p>
         </div>
         <div className="header-actions-group">
           <div className="btn-group-pill">
@@ -138,7 +138,7 @@ export const UtilitiesDashboard: React.FC = () => {
       <div className="content-header-row">
         <div>
           <h2>Plant Utilities & Auxiliary Distribution</h2>
-          <p className="content-subtitle">Liberty Mills Limited • Water, Natural Gas, Compressed Air & Nitrogen Plant</p>
+          <p className="content-subtitle">Lucky Textile • Water, Natural Gas, Compressed Air & Nitrogen Plant</p>
         </div>
         <div className="header-actions-group">
           <span className="badge-tag green">ALL UTILITY SYSTEMS STABLE</span>

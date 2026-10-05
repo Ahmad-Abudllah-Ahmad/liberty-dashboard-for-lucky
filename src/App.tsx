@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
-import { BrowserSimulationBar } from './components/BrowserSimulationBar';
-import { HomeDashboard } from './components/dashboards/HomeDashboard';
 import { SteamFlowDashboard } from './components/dashboards/SteamFlowDashboard';
 import { MoistureDashboard } from './components/dashboards/MoistureDashboard';
 import { PanelTemperatureDashboard } from './components/dashboards/PanelTemperatureDashboard';
@@ -33,22 +31,20 @@ import {
   ETPStatusPage,
   RONetworkPage,
 } from './components/dashboards/PortalPages';
+import { JobCardDashboard } from './components/dashboards/JobCardDashboard';
+import { BatchTraceDashboard } from './components/dashboards/BatchTraceDashboard';
 import { mockAlarmsList } from './data/mockPlantData';
 import type { AlarmRecord } from './types';
 import './App.css';
 
 export const App: React.FC = () => {
   // Navigation State
-  const [activeId, setActiveId] = useState<string>('home');
-  const [breadcrumb, setBreadcrumb] = useState<string>('Home');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
-  const [showBrowserFrame, setShowBrowserFrame] = useState<boolean>(false);
+  const [activeId, setActiveId] = useState<string>('dyeing-quality');
 
   // Submenus state: In screenshot 2, Dashboard, Printing, and Dyeing are expanded
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({
     dashboard: true,
-    printing: true,
-    dyeing: true,
+    'ltm-40': true,
   });
 
   // Alarms State (140 Alarms)
@@ -63,9 +59,7 @@ export const App: React.FC = () => {
 
   const handleSelect = (id: string, newBreadcrumb?: string) => {
     setActiveId(id);
-    if (newBreadcrumb) {
-      setBreadcrumb(newBreadcrumb);
-    }
+    void newBreadcrumb;
     // Scroll content container to top
     const mainEl = document.querySelector('.main-content-scroll');
     if (mainEl) {
@@ -83,17 +77,8 @@ export const App: React.FC = () => {
     setAlarms((prev) => prev.map((alm) => ({ ...alm, acknowledged: true })));
   };
 
-  const unacknowledgedCount = alarms.filter((a) => !a.acknowledged).length;
-
   const renderActiveDashboard = () => {
     switch (activeId) {
-      case 'home':
-        return (
-          <HomeDashboard
-            onNavigate={handleSelect}
-            unacknowledgedAlarmsCount={unacknowledgedCount}
-          />
-        );
       case 'energy-dashboard':
         return <EnergyGaugesPage />;
       case 'steam-flow':
@@ -108,6 +93,10 @@ export const App: React.FC = () => {
       case 'printing-live':
       case 'dyeing-live':
         return <LiveMonitoringPage />;
+      case 'job-card':
+        return <JobCardDashboard />;
+      case 'batch-trace':
+        return <BatchTraceDashboard />;
       case 'alarms':
         return (
           <AlarmsDashboard
@@ -163,45 +152,28 @@ export const App: React.FC = () => {
       case 'devices':
         return <DevicesGridPage />;
       default:
-        return (
-          <HomeDashboard
-            onNavigate={handleSelect}
-            unacknowledgedAlarmsCount={unacknowledgedCount}
-          />
-        );
+        return <QualityParametersPage />;
     }
   };
 
   return (
     <div className="app-container">
-      {/* Optional Windows 11 Chrome Browser Frame Toggle */}
-      <BrowserSimulationBar
-        showFrame={showBrowserFrame}
-        onToggleFrame={() => setShowBrowserFrame(!showBrowserFrame)}
+      <Header
+        alarms={alarms}
+        onOpenAlarms={() => handleSelect('alarms', 'Alarms')}
+        onNavigate={handleSelect}
       />
 
       <div className="app-body">
-        {/* Exact Left Sidebar */}
         <Sidebar
           activeId={activeId}
           onSelect={handleSelect}
-          collapsed={sidebarCollapsed}
+          collapsed
           openMenus={openMenus}
           toggleMenu={toggleMenu}
         />
 
-        {/* Main Content Area */}
-        <div className={`main-wrapper ${sidebarCollapsed ? 'sidebar-is-collapsed' : ''}`}>
-          {/* Header */}
-          <Header
-            breadcrumb={breadcrumb}
-            onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
-            alarms={alarms}
-            onOpenAlarms={() => handleSelect('alarms', 'Alarms')}
-            onNavigate={handleSelect}
-          />
-
-          {/* Scrollable Dashboard View */}
+        <div className="main-wrapper sidebar-is-collapsed">
           <main className="main-content-scroll">
             {renderActiveDashboard()}
           </main>

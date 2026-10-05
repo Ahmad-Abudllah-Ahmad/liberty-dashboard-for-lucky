@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
+import { AxisBarChart, RingGauge, SliceChart } from '../charts/PortalCharts';
 import { SplitMonitor } from '../scada/SplitMonitor';
 import {
-  qualityMachines,
-  liveMachines,
+  ltm40Machines,
   compressorMachines,
   solarMachines,
   chillerMachines,
@@ -22,7 +22,9 @@ export const QualityParametersPage: React.FC = () => (
   <SplitMonitor
     title="Quality Parameters Checking"
     breadcrumb="Quality Parameters Checking"
-    machines={qualityMachines}
+    machines={ltm40Machines}
+    listHeader="LTM 40"
+    parentLabel="LTM 40"
     mode="quality"
     defaultId="bleaching-01"
   />
@@ -32,7 +34,9 @@ export const LiveMonitoringPage: React.FC = () => (
   <SplitMonitor
     title="Live Monitoring"
     breadcrumb="Live Monitoring"
-    machines={liveMachines}
+    machines={ltm40Machines}
+    listHeader="LTM 40"
+    parentLabel="LTM 40"
     mode="tags"
     defaultId="bleaching-01-live"
   />
@@ -114,43 +118,91 @@ export const WaterPumpMonitorPage: React.FC = () => (
   />
 );
 
-const GaugeRing: React.FC<{
-  label: string;
-  color: string;
-  percent: number;
-  icon: string;
-}> = ({ label, color, percent, icon }) => {
-  const deg = Math.max(0, Math.min(100, percent)) * 3.6;
-  return (
-    <div className="energy-gauge">
-      <div
-        className="energy-gauge-ring"
-        style={{ background: `conic-gradient(${color} ${deg}deg, #e5e7eb ${deg}deg)` }}
-      >
-        <div className="energy-gauge-inner">
-          <span className="energy-gauge-icon" style={{ color }}>{icon}</span>
-        </div>
-      </div>
-      <span className="energy-gauge-label">{label}</span>
-    </div>
-  );
-};
-
 export const EnergyGaugesPage: React.FC = () => {
   const [tab, setTab] = useState<'steam' | 'gas' | 'power' | 'water'>('steam');
+
+  const bars =
+    tab === 'gas'
+      ? {
+          title: 'Gas Consumption (M³)',
+          max: 40000,
+          items: [
+            { label: 'Consumption', value: 28420, color: '#ef4444' },
+            { label: 'Wastage', value: 5813, color: '#fbbf24' },
+          ],
+        }
+      : tab === 'power'
+        ? {
+            title: 'Power Consumption (kWh)',
+            max: 22000,
+            items: [
+              { label: 'Consumption', value: 16240, color: '#f59e0b' },
+              { label: 'Wastage', value: 2686, color: '#fbbf24' },
+            ],
+          }
+        : tab === 'water'
+          ? {
+              title: 'Water Consumption (M³)',
+              max: 4000,
+              items: [
+                { label: 'Consumption', value: 2740, color: '#14b8a6' },
+                { label: 'Wastage', value: 469, color: '#fbbf24' },
+              ],
+            }
+          : {
+              title: 'Steam Consumption (Tons)',
+              max: 500,
+              items: [
+                { label: 'Consumption', value: 440.77, color: '#3a42a8' },
+                { label: 'Wastage', value: 86.27, color: '#fbbf24' },
+              ],
+            };
+
+  const generation =
+    tab === 'gas'
+      ? {
+          title: 'Gas Supply Mix',
+          slices: [
+            { label: 'Line gas', value: 81.4, color: '#ef4444' },
+            { label: 'Captive', value: 18.6, color: '#111827' },
+          ],
+        }
+      : tab === 'power'
+        ? {
+            title: 'Power Generation',
+            slices: [
+              { label: 'Grid', value: 46.2, color: '#f59e0b' },
+              { label: 'Genset', value: 31.5, color: '#111827' },
+              { label: 'Solar', value: 22.3, color: '#14b8a6' },
+            ],
+          }
+        : tab === 'water'
+          ? {
+              title: 'Water Source',
+              slices: [
+                { label: 'RO', value: 58.2, color: '#14b8a6' },
+                { label: 'Raw', value: 41.8, color: '#111827' },
+              ],
+            }
+          : {
+              title: 'Steam Generation',
+              slices: [
+                { label: 'Coal', value: 25.1, color: '#111827' },
+                { label: 'Gas', value: 74.9, color: '#14b8a6' },
+              ],
+            };
 
   return (
     <div className="portal-page energy-gauges-page">
       <div className="portal-page-head">
         <h2>Energy Dashboard</h2>
-        <p className="portal-crumb">Home / Energy Dashboard</p>
       </div>
 
       <div className="energy-gauge-row">
-        <GaugeRing label="Steam" color="#7c3aed" percent={72} icon="♨" />
-        <GaugeRing label="Electricity" color="#f59e0b" percent={64} icon="⚡" />
-        <GaugeRing label="Gas" color="#ef4444" percent={58} icon="🔥" />
-        <GaugeRing label="Water" color="#14b8a6" percent={46} icon="💧" />
+        <RingGauge label="Steam" color="#7c3aed" percent={72} icon="♨" />
+        <RingGauge label="Electricity" color="#f59e0b" percent={64} icon="⚡" />
+        <RingGauge label="Gas" color="#ef4444" percent={58} icon="🔥" />
+        <RingGauge label="Water" color="#14b8a6" percent={46} icon="💧" />
       </div>
 
       <div className="energy-stat-row">
@@ -178,61 +230,43 @@ export const EnergyGaugesPage: React.FC = () => {
 
       <div className="energy-charts-grid">
         <div className="portal-card">
-          <h3>Steam Consumption (Tons)</h3>
-          <div className="bar-chart">
-            <div className="bar-col">
-              <span className="bar-value">440.77</span>
-              <div className="bar-fill steam-bar" style={{ height: '78%' }} />
-              <span className="bar-name">Consumption</span>
-            </div>
-            <div className="bar-col">
-              <span className="bar-value">86.27</span>
-              <div className="bar-fill waste-bar" style={{ height: '16%' }} />
-              <span className="bar-name">Wastage</span>
-            </div>
-          </div>
+          <h3>{bars.title}</h3>
+          <AxisBarChart bars={bars.items} max={bars.max} category={tab} />
         </div>
 
         <div className="portal-card">
-          <h3>Steam Generation</h3>
-          <div className="donut-wrap">
-            <div className="donut" style={{ background: 'conic-gradient(#111827 0 90.36deg, #14b8a6 90.36deg 360deg)' }} />
-            <ul className="donut-legend">
-              <li><span className="swatch coal" /> Coal : 25.10%</li>
-              <li><span className="swatch gas" /> Gas : 74.90%</li>
-            </ul>
-          </div>
+          <h3>{generation.title}</h3>
+          <SliceChart slices={generation.slices} donut suffix="%" />
         </div>
 
         <div className="portal-card">
           <h3>Dyeing Unit (Steam Consumption in Ton)</h3>
-          <div className="donut-wrap">
-            <div className="donut" style={{ background: 'conic-gradient(#111827 0 186.5deg, #3b82f6 186.5deg 230deg, #f472b6 230deg 360deg)' }} />
-            <ul className="donut-legend">
-              <li>Goller Mercerize 2 — 12.25</li>
-              <li>Goller Mercerize 3 — 0.15</li>
-              <li>Pad Stenter 2 — 0.06</li>
-              <li>Sanforize 4 — 51.82</li>
-            </ul>
-          </div>
+          <SliceChart
+            slices={[
+              { label: 'Sanforize 4', value: 51.82, color: '#111827' },
+              { label: 'Goller Mercerize 2', value: 12.25, color: '#3a42a8' },
+              { label: 'Goller Mercerize 3', value: 5.15, color: '#f472b6' },
+              { label: 'Pad Stenter 2', value: 0.06, color: '#94a3b8' },
+            ]}
+          />
         </div>
 
-        <div className="portal-card">
+        <div className="portal-card is-wide">
           <h3>Printing Unit (Steam Consumption in Ton)</h3>
-          <div className="donut-wrap">
-            <div className="donut rainbow" />
-            <ul className="donut-legend compact">
-              <li>BLEACHING-01 — 85.83</li>
-              <li>BLEACHING-02 — 79.46</li>
-              <li>BLEACHING-03 — 76.45</li>
-              <li>MERCERIZE — 47.63</li>
-              <li>DESIZE-01 — 27.18</li>
-              <li>DESIZE-02 — 22.51</li>
-              <li>PAD STEAM DYEING — 17.98</li>
-              <li>CANLAR 150 / 750 / 1500 — 24.75</li>
-              <li>SANFORIZING — 13.91</li>
-            </ul>
-          </div>
+          <SliceChart
+            slices={[
+              { label: 'BLEACHING-01', value: 85.83, color: '#14b8a6' },
+              { label: 'BLEACHING-02', value: 79.46, color: '#3a42a8' },
+              { label: 'BLEACHING-03', value: 76.45, color: '#111827' },
+              { label: 'MERCERIZE', value: 47.63, color: '#c9cef0' },
+              { label: 'DESIZE-01', value: 27.18, color: '#a78bfa' },
+              { label: 'DESIZE-02', value: 22.51, color: '#f472b6' },
+              { label: 'PAD STEAM DYEING', value: 17.98, color: '#fb7185' },
+              { label: 'CANLAR 150+50', value: 14.69, color: '#f59e0b' },
+              { label: 'CANLAR 750', value: 13.91, color: '#22c55e' },
+              { label: 'SANFORIZING', value: 8.68, color: '#64748b' },
+            ]}
+          />
         </div>
       </div>
     </div>
@@ -288,7 +322,6 @@ export const UtilitiesProductionPage: React.FC = () => {
     <div className="portal-page">
       <div className="portal-page-head">
         <h2>Utilities with Production</h2>
-        <p className="portal-crumb">Home / Utilities with Production</p>
       </div>
       <FilterBar plant={plant} machine={machine} from={from} to={to} onPlant={setPlant} onMachine={setMachine} onFrom={setFrom} onTo={setTo} />
       <button type="button" className="btn-excel">Excel Export</button>
@@ -364,7 +397,6 @@ export const UtilitiesLotwisePage: React.FC = () => {
     <div className="portal-page">
       <div className="portal-page-head">
         <h2>Utilities with Lotwise Production</h2>
-        <p className="portal-crumb">Home / Utilities with Lotwise Production</p>
       </div>
       <FilterBar plant={plant} machine={machine} from={from} to={to} onPlant={setPlant} onMachine={setMachine} onFrom={setFrom} onTo={setTo} />
       <button type="button" className="btn-excel">Excel Export</button>
@@ -414,7 +446,6 @@ export const UtilitiesStoppagePage: React.FC = () => (
   <div className="portal-page">
     <div className="portal-page-head">
       <h2>Utilities with Stoppage</h2>
-      <p className="portal-crumb">Home / Utilities with Stoppage</p>
     </div>
     <div className="split-table-wrap">
       <table className="portal-table">
@@ -449,7 +480,6 @@ export const ActivityLogPage: React.FC = () => (
   <div className="portal-page">
     <div className="portal-page-head">
       <h2>Activity Log</h2>
-      <p className="portal-crumb">Home / Activity Log</p>
     </div>
     <div className="split-table-wrap">
       <table className="portal-table">
@@ -480,7 +510,6 @@ export const MachineStoppagesPage: React.FC = () => (
   <div className="portal-page">
     <div className="portal-page-head">
       <h2>Machine Stoppages</h2>
-      <p className="portal-crumb">Home / Machine Stoppages</p>
     </div>
     <div className="split-table-wrap">
       <table className="portal-table">
@@ -536,7 +565,6 @@ export const BoilerPerformancePage: React.FC = () => {
     <div className="portal-page">
       <div className="portal-page-head">
         <h2>Boilers Performance</h2>
-        <p className="portal-crumb">Home / Boilers</p>
       </div>
       <div className="filter-bar">
         <label>From<input type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></label>
@@ -587,7 +615,6 @@ export const BoilerStatusPage: React.FC = () => {
     <div className="portal-page">
       <div className="portal-page-head">
         <h2>Boilers Status</h2>
-        <p className="portal-crumb">Home / Boilers Status</p>
       </div>
       <div className="hx-legend">
         <span><i className="dot running" /> Running</span>
@@ -614,7 +641,6 @@ export const HeatExchangerCardsPage: React.FC = () => (
   <div className="portal-page">
     <div className="portal-page-head">
       <h2>Heat Exchangers</h2>
-      <p className="portal-crumb">Home / Heat Exchangers</p>
     </div>
     <div className="hx-legend">
       <span><i className="dot running" /> Running</span>
@@ -656,7 +682,6 @@ export const DevicesGridPage: React.FC = () => (
   <div className="portal-page">
     <div className="portal-page-head">
       <h2>Devices</h2>
-      <p className="portal-crumb">Home / Devices</p>
     </div>
     <div className="device-grid">
       {deviceCards.map((device) => (
@@ -680,7 +705,6 @@ export const GridDashboardPage: React.FC = () => (
   <div className="portal-page">
     <div className="portal-page-head">
       <h2>Grid Dashboard</h2>
-      <p className="portal-crumb">Home / Grid Dashboard</p>
     </div>
     <div className="sld-canvas">
       <div className="gen-row">
@@ -725,7 +749,6 @@ export const GridDashboard2Page: React.FC = () => (
   <div className="portal-page">
     <div className="portal-page-head">
       <h2>Grid Dashboard-2</h2>
-      <p className="portal-crumb">Home / Grid Dashboard-2</p>
     </div>
     <div className="sld-canvas tall">
       <div className="gen-row labeled">
@@ -779,7 +802,6 @@ export const GridStatusPage: React.FC = () => (
   <div className="portal-page">
     <div className="portal-page-head">
       <h2>Grid Status</h2>
-      <p className="portal-crumb">Home / Grid Status</p>
     </div>
     <div className="split-table-wrap">
       <table className="portal-table">
@@ -808,7 +830,6 @@ export const ETPDashboardPage: React.FC = () => (
   <div className="portal-page">
     <div className="portal-page-head">
       <h2>ETP Dashboard</h2>
-      <p className="portal-crumb">Home / ETP Dashboard</p>
     </div>
     <div className="pfd-board">
       <div className="pfd-row">
@@ -849,7 +870,6 @@ export const RONetworkPage: React.FC = () => (
   <div className="portal-page">
     <div className="portal-page-head">
       <h2>RO</h2>
-      <p className="portal-crumb">Home / RO</p>
     </div>
     <div className="pfd-board ro-board">
       <div className="pfd-row">
@@ -857,7 +877,7 @@ export const RONetworkPage: React.FC = () => (
         <div className="pfd-tank wide aqua">Petrol Office Pumping Station</div>
       </div>
       <div className="pfd-row">
-        <div className="pfd-tank wide">Liberty Mills Limited</div>
+        <div className="pfd-tank wide">Lucky Textile</div>
       </div>
       <div className="pfd-row tanks">
         {['Tank 1', 'Tank 2', 'Tank 3', 'Tank 4', 'Tank 5', 'Tank 6'].map((t) => (

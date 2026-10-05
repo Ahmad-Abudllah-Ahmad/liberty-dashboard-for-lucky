@@ -12,7 +12,7 @@ export const BrowserSimulationBar: React.FC<BrowserSimulationBarProps> = ({
   if (!showFrame) {
     return (
       <div className="simulation-toggle-banner">
-        <span>🏭 Liberty Mills Limited Central SCADA Portal</span>
+        <span>🏭 Lucky Textile Central SCADA Portal</span>
         <button className="btn-toggle-frame" onClick={onToggleFrame}>
           Toggle Desktop Browser Frame (10.252.1.247:8018)
         </button>
@@ -32,12 +32,12 @@ export const BrowserSimulationBar: React.FC<BrowserSimulationBarProps> = ({
           </div>
           <div className="chrome-tab">
             <span className="tab-favicon">🏢</span>
-            <span className="tab-title">LIBERTY MILLS LIM...</span>
+            <span className="tab-title">LUCKY TEXTILE</span>
             <span className="tab-close">×</span>
           </div>
           <div className="chrome-tab">
             <span className="tab-favicon">🏢</span>
-            <span className="tab-title">LIBERTY MILLS LIM...</span>
+            <span className="tab-title">LUCKY TEXTILE</span>
             <span className="tab-close">×</span>
           </div>
           <div className="chrome-tab">
@@ -63,7 +63,7 @@ export const BrowserSimulationBar: React.FC<BrowserSimulationBarProps> = ({
           {/* Active Tab */}
           <div className="chrome-tab active-tab">
             <span className="tab-favicon-active">A</span>
-            <span className="tab-title">Liberty</span>
+            <span className="tab-title">Lucky Textile</span>
             <span className="tab-close">×</span>
           </div>
           <div className="chrome-new-tab" title="New Tab">+</div>

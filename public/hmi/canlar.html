@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CANLAR Jet Dyeing HMI</title>
+<link rel="stylesheet" href="hmi-kit.css">
+</head><body>
+<div id="wrap"><svg id="s" viewBox="0 0 2900 1484" preserveAspectRatio="xMidYMid meet"></svg></div>
+<div id="tip"></div>
+<script src="hmi-kit.js"></script>
+<script src="hmi-fabric.js"></script>
+<script>
+const CY='#7fe3f2',GL='#5ec44a';
+const cy=(x,y,w,v,name,unit='')=>{const b=box(x,y,w,42,CY,v,NV,28);if(name)b.tip=()=>({t:name,r:[['Value',b.lastChild.textContent+' '+unit]]});return b};
+const gl=(x,y,w,t,h=40)=>box(x,y,w,h,GL,t,'#0a3a0a',22);
+const state={temp:68,level:46,lt:3109,water:32563,inlet:true,run:true};
+
+function vessel(){
+ // program / step bar
+ const st=E('g',{class:'c'});rc(30,142,130,130,'#1f8a3a',{stroke:'#fff','stroke-width':3},st);E('path',{d:'M95 162L140 207L95 252L50 207Z',fill:'none',stroke:'#fff','stroke-width':8},st);E('path',{d:'M95 186V228',stroke:'#fff','stroke-width':8},st);
+ st.addEventListener('click',()=>{state.run=!state.run;st.firstChild.setAttribute('fill',state.run?'#1f8a3a':RED)});tip(st,()=>({t:'Program Start / Hold',r:[['State',state.run?'RUNNING':'HOLD'],['Action','Click to toggle']]}));
+ panel(176,142,1000,130,'');LB(205,192,'Program','28','#1c2a8a','start');TX(360,195,38,'WHITE',NV,'start');LB(205,248,'Fabric',28,NV,'start');TX(360,250,38,'5 COTTON',NV,'start');
+ panel(1192,142,1678,130,'');
+ const pt=TX(1440,192,40,'05:35:39',NV);LB(1440,226,'Process Time',20,'#333');
+ let sec=5*3600+35*60+39;setInterval(()=>{if(!state.run)return;sec++;const h=String(sec/3600|0).padStart(2,'0'),m=String((sec/60|0)%60).padStart(2,'0'),s=String(sec%60).padStart(2,'0');pt.textContent=`${h}:${m}:${s}`},1000);
+ [[1780,'60','Step No.'],[2180,'10.6','Gradient °C/min'],[2600,'0.0','Remaining min']].forEach(([x,v,l])=>{TX(x,192,40,v,NV);LB(x,226,l,20,'#333')});
+ alarmBar(1192,238,1678,34,'⚠  SEDOMAT BATTERY EMPTY');
+ // winch table
+ E('rect',{x:30,y:288,width:2840,height:250,fill:'#5fd0e6',stroke:'#fff','stroke-width':3});
+ TX(1450,320,30,'Winch Speed Set Value (m/min)',NV);TX(1450,432,30,'Winch Cycle Time Act / Last Time (sec)',NV);
+ const act=[5581,81,652,5,70,0,0,0,0,0],last=[0,127,113,109,107,0,0,0,0,0];
+ for(let i=0;i<10;i++){const x=30+i*284;E('rect',{x,y:332,width:284,height:34,fill:'#8fe0ef',stroke:'#fff'});LB(x+142,357,'Winch '+(i+1),22,NV);
+  const v=box(x+142,388,284,44,'#fff',i<5?'140':'',NV,30);const a=box(x+142,468,284,38,'#fff',String(act[i]),NV,26),l=box(x+142,506,284,38,'#fff',String(last[i]),NV,26);
+  const n=i;let c=act[i];const f=()=>({t:'Winch '+(n+1),r:[['Set Speed',n<5?'140 m/min':'not used'],['Cycle Act',c+' s'],['Cycle Last',last[n]+' s'],['Status',n<5?'RUNNING':'IDLE']]});[v,a,l].forEach(b=>b.tip=f);
+  if(i<5)live(()=>{if(state.run){c+=1;a.set(String(c))}})}
+ // left command column
+ gl(180,590,300,'Set All Winch Speed',60);adj(180,660,'All Winch Speed',140,1,'m/min',{d:0,sign:false});
+ gl(180,730,300,'Set Nozzle');adj(180,790,'Nozzle Opening',70,1,'%',{d:0,sign:false});
+ gl(180,860,300,'Speed Man / Oto');sel(180,912,['Oto','Man'],0,150,'Winch Speed Mode');
+ gl(180,982,300,'Cycle Cont On/Off');toggle(180,1050,'Cycle Control',true,70);
+ gl(180,1130,300,'Valve %');val(180,1180,'Drain Valve Output',0,'%',{fill:CY,col:NV,d:0,w:160});valve(180,1250,'Drain Valve V-01',false);
+ gl(180,1330,300,'Tot Water 0.10 Lt');const tw=box(180,1385,250,46,CY,'32563',NV,30);tw.tip=()=>({t:'Total Water Consumption',r:[['Total',state.water+' L'],['Inlet',state.inlet?'FILLING':'CLOSED']]});
+ live(()=>{if(state.inlet){state.water+=rnd(3,9);tw.set(String(state.water))}});
+ // vessel body
+ const c={x:930,y:1030};
+ E('circle',{cx:c.x,cy:c.y,r:362,fill:'#d6d9ec',stroke:'#5a6a9a','stroke-width':16});
+ pipe('M1259 840A380 380 0 1 1 573 1160','Liquor Circulation Jacket',PIPE,14);
+ E('path',{d:'M670 1180A300 300 0 0 0 1190 1180L1120 1140A220 220 0 0 1 740 1140Z',fill:'#6d7393',stroke:'#3a3f5a','stroke-width':4});
+ for(let i=0;i<9;i++){const a=(150-i*15)*Math.PI/180;E('path',{d:`M${c.x+Math.cos(a)*228} ${c.y+Math.sin(a)*228}Q${c.x+Math.cos(a+.08)*262} ${c.y+Math.sin(a+.08)*262} ${c.x+Math.cos(a)*292} ${c.y+Math.sin(a)*292}`,stroke:CR,'stroke-width':6,fill:'none'})}
+ E('path',{d:'M1080 760L1290 900V1080L1180 1010Z',fill:'#7b80a0',stroke:'#3a3f5a','stroke-width':4});
+ E('path',{d:'M700 690L1150 880',stroke:'#9aa0c0','stroke-width':54,'stroke-linecap':'round'});E('path',{d:'M700 690L1150 880',stroke:'#c8cce0','stroke-width':34,'stroke-linecap':'round'});
+ cloth('M640 1150Q590 950 645 760L694 660L1150 880Q1240 960 1185 1125Q930 1330 690 1172Z',()=>[['Fabric','5 COTTON'],['Rope Speed','140 m/min'],['Cycle',state.run?'RUNNING':'HOLD']]);
+ rl(694,704,34,'Winch Reel 1','#ffe06a','#3a3f5a');
+ const nz=G();P=nz;E('path',{d:'M820 720L900 760L880 800L800 760Z',fill:'#3a3f5a'});P=nz.parentNode;tip(nz,()=>({t:'Jet Nozzle',r:[['Opening','70 %'],['Liquor Pressure',fx(jit(1.8,.2),2)+' bar']]}));
+ cy(780,640,90,'70','Nozzle Opening','%');
+ // vessel data panel
+ const vp=[['Level Lt.',()=>String(state.lt),CY,NV],['Level %',()=>fx(state.level,0),CY,NV],['Act Temp',()=>fx(state.temp,0),RED,'#fff'],['Flowmeter Lt.',()=>'0',CY,NV]];
+ vp.forEach(([l,f,fill,col],i)=>{gl(930,870+i*84,200,l,38);const b=box(930,910+i*84,200,40,fill,f(),col,28);b.tip=()=>({t:'Vessel '+l,r:[['Value',f()],['Set Temp','80 °C'],['Liquor Ratio','1 : 8']]});live(()=>b.set(f()))});
+ live(()=>{if(state.run)state.temp=Math.min(80,state.temp+jit(.35,.2));state.level=Math.max(40,Math.min(52,jit(state.level,.8)));state.lt=Math.round(state.level*67.6)});
+ // air vent / steam
+ pipe('M1060 690V600',null,'#9aa0b8',8,false);valve(1060,640,'Air Vent Valve',false,true);
+ E('path',{d:'M1110 610l12-26 12 26zM1140 610l12-26 12 26z',fill:LG,stroke:'#0a4a0a','stroke-width':2});lamp(1170,560,'Pressure Switch',true,12);
+ // circulation loop: vessel -> main pump -> heat exchanger -> nozzle
+ pipe('M930 1392V1432H1270','Vessel Outlet',PIPE,12);
+ pipe('M1388 1400H1440V1240',' Pump Discharge',PIPE,12);
+ pipe('M1440 1000V600H820V700','Heat Exchanger Outlet',PIPE,12);
+ [800,840,880].forEach((x,i)=>{valve(x,1432,'Water Inlet Valve '+(i+1),i===0,true)});
+ const pm=pump(1330,1400,'Main Circulation Pump',true,34,o=>[['Speed',o?'60 %':'0 %'],['Flow',o?'870 L/min':'0 L/min'],['Pressure',o?fx(jit(2.4,.2))+' bar':'0.0 bar']]);
+ box(1530,1310,110,44,CY,'870',NV,28).tip=()=>({t:'Circulation Flow',r:[['Flow','870 L/min']]});
+ gl(1330,1300,180,'Speed %');box(1330,1350,120,40,CY,'60',NV,26);
+ const hx=G();P=hx;rc(1404,1000,72,240,'#c7cbe0',{rx:30,stroke:'#3a4a7a','stroke-width':4});for(let y=1030;y<1220;y+=26)E('path',{d:`M1412 ${y}H1468`,stroke:'#8a90b0','stroke-width':4});P=hx.parentNode;
+ tip(hx,()=>({t:'Heat Exchanger',r:[['Liquor In',fx(state.temp-1.5)+' °C'],['Liquor Out',fx(state.temp+1.2)+' °C'],['Steam Valve',state.temp<80?'MODULATING':'HOLD'],['Gradient','10.6 °C/min']]}));
+ gl(1250,1060,150,'Valve %');val(1250,1105,'Steam Control Valve',0,'%',{fill:CY,col:NV,d:0,w:120});
+ // stock tank
+ tank(1560,640,120,320,'Main Stock Tank',100,{cap:2900,col:'#3d7be0',drift:.4});
+ pipe('M1620 640V600H1720',null,'#9aa0b8',8,false);valve(1680,600,'Stock Tank Fill Valve',true);
+ [['Level Lt.','2900',CY,NV],['Level %','100',CY,NV],['Act Temp','38',RED,'#fff']].forEach(([l,v,f,c],i)=>{gl(1810,650+i*84,200,l,38);box(1810,690+i*84,200,40,f,v,c,28).tip=()=>({t:'Stock Tank '+l,r:[['Value',v]]})});
+ pipe('M1590 960V1040H1700',null,'#9aa0b8',8);pipe('M1650 960V1040',null,'#9aa0b8',8);valve(1590,1000,'Stock Outlet Valve A',true,true);valve(1650,1000,'Stock Outlet Valve B',false,true);
+ pump(1740,1060,'Stock Transfer Pump',false,22);pipe('M1700 1100V1180H1440',null,'#9aa0b8',8,false);valve(1600,1180,'Transfer Valve',false);
+ // add tanks
+ [[2060,80,81,80,'Add Tank 1'],[2380,70,41,0,'Add Tank 2']].forEach(([x,sv,pv,lv,n])=>{
+  gl(x,760,200,'Set Temp');box(x,806,200,46,CY,String(sv),NV,32);gl(x,860,200,'Act Temp');const pb=box(x,906,200,46,RED,String(pv),'#fff',32);let t=pv;pb.tip=()=>({t:n+' Temperature',r:[['Set',sv+' °C'],['Actual',fx(t)+' °C']]});live(()=>{t+=(sv-t)*.04+jit(0,.3);pb.set(fx(t,0))});
+  E('path',{d:`M${x+40} 960l-10-24h60l-10 24z`,fill:'#3a8a3a',stroke:'#fff','stroke-width':2,transform:`rotate(25 ${x+40} 960)`});E('path',{d:`M${x+28} 980V1060`,stroke:'#333','stroke-width':5});
+  const tk=tank(x-70,1010,140,150,n,lv,{cap:600,col:'#3d7be0'});E('path',{d:`M${x-60} 1020L${x+60} 1150`,stroke:'#ffffff','stroke-opacity':.6,'stroke-width':6});
+  const lb=TX(x,1100,40,lv+' %',NV);lb.setAttribute('stroke','#fff');lb.setAttribute('stroke-width','5');lb.setAttribute('paint-order','stroke');live(()=>lb.textContent=fx(tk.get(),0)+' %');
+  pipe(`M${x-110} 960V1060H${x-70}`,null,'#9aa0b8',8,false);valve(x-110,940,n+' Water Valve',false,true);valve(x-150,1060,n+' Steam Valve',true);
+  pipe(`M${x+40} 1160V1280`,null,'#9aa0b8',8,false);valve(x+40,1300,n+' Drain Valve',false,true);
+  pipe(`M${x-50} 1160V1400H${x-120}`,null,'#9aa0b8',8);pump(x-20,1420,n+' Dosing Pump',lv>0,22);
+ });
+ pipe('M1940 1400H1490V1240',null,'#9aa0b8',8,false);pipe('M2260 1400H2180',null,'#9aa0b8',8,false);
+ valve(1880,1400,'Add Tank Line Valve 1',true);valve(2220,1400,'Add Tank Line Valve 2',false);
+ // dosing summary
+ panel(2610,1050,260,410,'Dosing');[['D Time min','0'],['D Level %','92'],['D Quantity %','92']].forEach(([l,v],i)=>{gl(2740,1130+i*110,230,l,38);box(2740,1172+i*110,230,42,CY,v,NV,28).tip=()=>({t:'Dosing '+l,r:[['Value',v]]})});
+ // legend
+ [['Liquor',PIPE],['Service',GREY],['Fabric',CR]].forEach(([l,c],i)=>{rc(2620,600+i*48,48,14,c);LB(2690,613+i*48,l,22,'#fff','start')});
+}
+
+HMI({screens:[{name:'Vessel',draw:vessel}],stats:[
+ {l:'Winch',v:'140',fill:RED,tip:()=>({t:'Winch Speed',r:[['Set','140 m/min']]})},
+ {l:'Vessel',v:'68 °C',fill:TEAL,col:'#fff',w:150,live:b=>b.set(fx(state.temp,0)+' °C'),tip:()=>({t:'Vessel Temperature',r:[['Actual',fx(state.temp)+' °C'],['Set','80 °C']]})}]});
+</script></body></html>

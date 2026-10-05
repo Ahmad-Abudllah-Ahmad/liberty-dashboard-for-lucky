@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 export const QualityParametersComparisonDashboard: React.FC = () => {
   const [selectedMachine, setSelectedMachine] = useState<string>('BLEACHING-01');
   const [activeSubTab, setActiveSubTab] = useState<string>('prod');
-  const [dateRange, setDateRange] = useState<string>('28-09-2026 to 29-09-2026');
+  const [dateRange] = useState<string>('28-09-2026 to 29-09-2026');
 
   const machineOptions = [
     'BLEACHING-01',
@@ -46,7 +46,7 @@ export const QualityParametersComparisonDashboard: React.FC = () => {
       <div className="content-header-row">
         <div>
           <h2>Quality Parameters Checks &amp; Machine Comparison</h2>
-          <p className="content-subtitle">Liberty Mills Limited • Real-time Process Setpoint vs Actual Verification (10.252.1.247:8018/Comparision/7)</p>
+          <p className="content-subtitle">Lucky Textile • Real-time Process Setpoint vs Actual Verification (10.252.1.247:8018/Comparision/7)</p>
         </div>
         <div className="header-actions-group">
           <div className="machine-selector-dropdown">

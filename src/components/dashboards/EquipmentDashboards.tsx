@@ -6,7 +6,7 @@ export const HeatExchangerDashboard: React.FC = () => (
     <div className="content-header-row">
       <div>
         <h2>Heat Exchanger & Thermal Energy Recovery Systems</h2>
-        <p className="content-subtitle">Liberty Mills Limited • Plate Heat Exchangers, Caustic & Hot Water Recovery</p>
+        <p className="content-subtitle">Lucky Textile • Plate Heat Exchangers, Caustic & Hot Water Recovery</p>
       </div>
       <div className="header-actions-group">
         <span className="badge-tag green">HEAT RECOVERY EFFICIENCY: 84.6%</span>
@@ -123,7 +123,7 @@ export const GenesetDashboard: React.FC = () => (
     <div className="content-header-row">
       <div>
         <h2>In-House Power Generation • Gas & Diesel Gensets</h2>
-        <p className="content-subtitle">Liberty Mills Limited • Jenbacher JMS 620 Gas Engines & Standby Caterpillar Gensets</p>
+        <p className="content-subtitle">Lucky Textile • Jenbacher JMS 620 Gas Engines & Standby Caterpillar Gensets</p>
       </div>
       <div className="header-actions-group">
         <span className="badge-tag green">GENSET LOAD: 7,620 kW (SYNCHRONIZED)</span>
@@ -221,7 +221,7 @@ export const CompressorDashboard: React.FC = () => (
     <div className="content-header-row">
       <div>
         <h2>Compressed Air Plant SCADA (Atlas Copco Oil-Free)</h2>
-        <p className="content-subtitle">Liberty Mills Limited • Central Compressed Air Ring Main & Refrigerant Dryers</p>
+        <p className="content-subtitle">Lucky Textile • Central Compressed Air Ring Main & Refrigerant Dryers</p>
       </div>
       <div className="header-actions-group">
         <span className="badge-tag green">HEADER PRESSURE: 7.25 BAR (STABLE)</span>
@@ -352,7 +352,7 @@ export const HVACDashboard: React.FC = () => (
     <div className="content-header-row">
       <div>
         <h2>HVAC, Air Handling Units & Climate Regulation</h2>
-        <p className="content-subtitle">Liberty Mills Limited • Textile Finishing, Printing & Weaving Halls Environmental Control</p>
+        <p className="content-subtitle">Lucky Textile • Textile Finishing, Printing & Weaving Halls Environmental Control</p>
       </div>
       <div className="header-actions-group">
         <span className="badge-tag green">HUMIDITY & TEMP COMPLIANCE: 99.4%</span>
@@ -418,7 +418,7 @@ export const GridDashboard: React.FC = () => (
     <div className="content-header-row">
       <div>
         <h2>K-Electric 11kV Grid Incomer & Substation Telemetry</h2>
-        <p className="content-subtitle">Liberty Mills Limited • 132kV/11kV Substation & Synchronizing Incomers</p>
+        <p className="content-subtitle">Lucky Textile • 132kV/11kV Substation & Synchronizing Incomers</p>
       </div>
       <div className="header-actions-group">
         <span className="badge-tag green">TARIFF WINDOW: OFF-PEAK</span>
@@ -484,7 +484,7 @@ export const SolarPVDashboard: React.FC = () => (
     <div className="content-header-row">
       <div>
         <h2>3.5 MWp Rooftop Solar PV Telemetry & Generation</h2>
-        <p className="content-subtitle">Liberty Mills Limited • Clean Solar Generation Across Finishing & Weaving Rooftops</p>
+        <p className="content-subtitle">Lucky Textile • Clean Solar Generation Across Finishing & Weaving Rooftops</p>
       </div>
       <div className="header-actions-group">
         <span className="badge-tag green">CLEAN ENERGY RATIO: 20.3% OF PLANT</span>
@@ -550,7 +550,7 @@ export const ChillersDashboard: React.FC = () => (
     <div className="content-header-row">
       <div>
         <h2>Central Chilled Water Plant (Centrifugal &amp; Absorption Chillers)</h2>
-        <p className="content-subtitle">Liberty Mills Limited • Cooling for Mercerizing, Caustic Cooling, Printing &amp; HVAC</p>
+        <p className="content-subtitle">Lucky Textile • Cooling for Mercerizing, Caustic Cooling, Printing &amp; HVAC</p>
       </div>
       <div className="header-actions-group">
         <span className="badge-tag green">CHILLER COP: 5.82 (OPTIMAL)</span>
@@ -616,7 +616,7 @@ export const WaterPumpDashboard: React.FC = () => (
     <div className="content-header-row">
       <div>
         <h2>Water Pumping Stations & Hydro-pneumatic Network</h2>
-        <p className="content-subtitle">Liberty Mills Limited • Deep Wells, Soft Water Boosters &amp; Fire Hydrant Ring</p>
+        <p className="content-subtitle">Lucky Textile • Deep Wells, Soft Water Boosters &amp; Fire Hydrant Ring</p>
       </div>
       <div className="header-actions-group">
         <span className="badge-tag green">RING MAIN PRESSURE: 4.8 BAR</span>
@@ -682,7 +682,7 @@ export const ETPDashboard: React.FC = () => (
     <div className="content-header-row">
       <div>
         <h2>Effluent Treatment Plant (ETP) & Environmental Compliance</h2>
-        <p className="content-subtitle">Liberty Mills Limited • Combined Chemical &amp; Biological Wastewater Treatment</p>
+        <p className="content-subtitle">Lucky Textile • Combined Chemical &amp; Biological Wastewater Treatment</p>
       </div>
       <div className="header-actions-group">
         <span className="badge-tag green">SEPA / NEQS DISCHARGE: 100% COMPLIANT</span>
@@ -748,7 +748,7 @@ export const RODashboard: React.FC = () => (
     <div className="content-header-row">
       <div>
         <h2>Reverse Osmosis (RO) Water Purification Plant</h2>
-        <p className="content-subtitle">Liberty Mills Limited • Ultrafiltration &amp; 3-Pass RO for High-Precision Dyeing &amp; Boilers</p>
+        <p className="content-subtitle">Lucky Textile • Ultrafiltration &amp; 3-Pass RO for High-Precision Dyeing &amp; Boilers</p>
       </div>
       <div className="header-actions-group">
         <span className="badge-tag green">RECOVERY RATE: 78.5% (OPTIMAL)</span>
@@ -814,7 +814,7 @@ export const DevicesDashboard: React.FC = () => (
     <div className="content-header-row">
       <div>
         <h2>IoT Gateways, PLC Network & Fieldbus Devices</h2>
-        <p className="content-subtitle">Liberty Mills Limited • SCADA Telemetry Network Infrastructure &amp; Modbus TCP Gateways</p>
+        <p className="content-subtitle">Lucky Textile • SCADA Telemetry Network Infrastructure &amp; Modbus TCP Gateways</p>
       </div>
       <div className="header-actions-group">
         <span className="badge-tag green">64 / 64 FIELD GATEWAYS ONLINE</span>

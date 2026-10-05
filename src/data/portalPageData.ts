@@ -282,6 +282,17 @@ export const liveMachines: MonitorMachine[] = [
   { id: 'canlar-50', name: 'CANLAR 50', rows: [tag('Steam Flow', 2621, 'KG/H', 46)] },
 ];
 
+const qualityNames = new Set(qualityMachines.map((machine) => machine.name));
+
+export const ltm40Machines: MonitorMachine[] = [
+  ...qualityMachines,
+  ...liveMachines.map((machine) => ({
+    ...machine,
+    group: 'Live Monitoring',
+    name: qualityNames.has(machine.name) ? `${machine.name} · Live` : machine.name,
+  })),
+];
+
 export const compressorMachines: MonitorMachine[] = [
   {
     id: 'compressor',

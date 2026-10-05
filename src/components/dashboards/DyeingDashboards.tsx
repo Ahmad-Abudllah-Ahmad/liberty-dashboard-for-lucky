@@ -6,7 +6,7 @@ export const DyeingQualityDashboard: React.FC = () => {
       <div className="content-header-row">
         <div>
           <h2>Dyeing Quality Parameters & Process Curves</h2>
-          <p className="content-subtitle">Liberty Mills Limited • High Temperature Exhaust & Continuous Dyeing QC</p>
+          <p className="content-subtitle">Lucky Textile • High Temperature Exhaust & Continuous Dyeing QC</p>
         </div>
         <div className="header-actions-group">
           <span className="badge-tag green">RIGHT-FIRST-TIME (RFT): 98.6%</span>
@@ -171,7 +171,7 @@ export const DyeingLiveMonitoringDashboard: React.FC = () => {
       <div className="content-header-row">
         <div>
           <h2>Dyeing Mills Live SCADA Telemetry & Vessel Monitoring</h2>
-          <p className="content-subtitle">Liberty Mills Limited • Central Dye House Vessel Automation Network</p>
+          <p className="content-subtitle">Lucky Textile • Central Dye House Vessel Automation Network</p>
         </div>
         <div className="header-actions-group">
           <span className="badge-tag green">8 OF 10 VESSELS ACTIVE IN PRODUCTION</span>

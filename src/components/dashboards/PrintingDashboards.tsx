@@ -7,7 +7,7 @@ export const PrintingQualityDashboard: React.FC = () => {
       <div className="content-header-row">
         <div>
           <h2>Printing Quality Parameters & Spectrophotometry</h2>
-          <p className="content-subtitle">Liberty Mills Limited • Rotary Screen & Digital Textile Printing Quality Control</p>
+          <p className="content-subtitle">Lucky Textile • Rotary Screen & Digital Textile Printing Quality Control</p>
         </div>
         <div className="header-actions-group">
           <span className="badge-tag green">QUALITY GRADE: A+ (99.2% FIRST CHOICE)</span>
@@ -148,7 +148,7 @@ export const PrintingQualityDashboard: React.FC = () => {
 
           <div className="quality-assurance-badge">
             <h4>ISO 9001 & OEKO-TEX Standard 100 Certified</h4>
-            <p>Liberty Mills Limited high-performance printing standards guarantee wash fastness Grade 4-5 and light fastness Grade 6.</p>
+            <p>Lucky Textile high-performance printing standards guarantee wash fastness Grade 4-5 and light fastness Grade 6.</p>
           </div>
         </div>
       </div>
@@ -164,7 +164,7 @@ export const PrintingLiveMonitoringDashboard: React.FC = () => {
       <div className="content-header-row">
         <div>
           <h2>Printing Mills Live SCADA Telemetry & Machine Monitoring</h2>
-          <p className="content-subtitle">Liberty Mills Limited • Rotary, Flatbed & Stenter Production Lines</p>
+          <p className="content-subtitle">Lucky Textile • Rotary, Flatbed & Stenter Production Lines</p>
         </div>
         <div className="header-actions-group">
           <div className="btn-group-pill">

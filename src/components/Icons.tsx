@@ -164,8 +164,79 @@ export const IconChevronDown: React.FC<{ size?: number; className?: string }> = 
 );
 
 export const IconSubmenuCircle: React.FC<{ size?: number }> = ({ size = 14 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-    <circle cx="12" cy="12" r="8" />
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="7.5" />
+    <circle cx="12" cy="12" r="2.5" fill="currentColor" />
+  </svg>
+);
+
+export const IconSteam: React.FC<{ size?: number; className?: string }> = ({ size = 18, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M4 14c2.5-2 5.5-2 8 0s5.5 2 8 0" />
+    <path d="M4 18c2.5-2 5.5-2 8 0s5.5 2 8 0" />
+    <path d="M12 4c-1.8 2.4-1.8 5.1 0 7.5" />
+    <path d="M8 5c-1.2 1.6-1.2 3.4 0 5" />
+    <path d="M16 5c-1.2 1.6-1.2 3.4 0 5" />
+  </svg>
+);
+
+export const IconMoisture: React.FC<{ size?: number; className?: string }> = ({ size = 18, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M12 3s6 6.4 6 11a6 6 0 1 1-12 0c0-4.6 6-11 6-11z" />
+  </svg>
+);
+
+export const IconTemperature: React.FC<{ size?: number; className?: string }> = ({ size = 18, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M14 14.76V5a2 2 0 1 0-4 0v9.76a4 4 0 1 0 4 0z" />
+    <path d="M12 17v-6" />
+  </svg>
+);
+
+export const IconQuality: React.FC<{ size?: number; className?: string }> = ({ size = 18, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M9 11l3 3L22 4" />
+    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+  </svg>
+);
+
+export const IconLive: React.FC<{ size?: number; className?: string }> = ({ size = 18, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="2" y="4" width="20" height="14" rx="2" />
+    <path d="M8 21h8" />
+    <path d="M7 11h2l2-3 2 6 2-3h2" />
+  </svg>
+);
+
+export const IconStatus: React.FC<{ size?: number; className?: string }> = ({ size = 18, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 7v5l3 2" />
+  </svg>
+);
+
+export const IconPerformance: React.FC<{ size?: number; className?: string }> = ({ size = 18, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M3 17l6-6 4 4 8-8" />
+    <path d="M14 7h7v7" />
+  </svg>
+);
+
+export const IconLog: React.FC<{ size?: number; className?: string }> = ({ size = 18, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M8 6h13" />
+    <path d="M8 12h13" />
+    <path d="M8 18h13" />
+    <circle cx="4" cy="6" r="1.2" fill="currentColor" />
+    <circle cx="4" cy="12" r="1.2" fill="currentColor" />
+    <circle cx="4" cy="18" r="1.2" fill="currentColor" />
+  </svg>
+);
+
+export const IconStoppage: React.FC<{ size?: number; className?: string }> = ({ size = 18, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M9 9h6v6H9z" />
   </svg>
 );
 
@@ -249,7 +320,7 @@ export const LibertyLogo: React.FC<{ size?: number }> = ({ size = 32 }) => (
       whiteSpace: 'nowrap',
       fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
     }}>
-      Liberty Mills Limited
+      Lucky Textile
     </span>
   </div>
 );

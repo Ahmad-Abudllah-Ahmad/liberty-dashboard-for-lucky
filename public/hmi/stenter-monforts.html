@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monforts Montex Stenter HMI</title>
+<link rel="stylesheet" href="hmi-kit.css">
+</head><body>
+<div id="wrap"><svg id="s" viewBox="0 0 2900 1484" preserveAspectRatio="xMidYMid meet"></svg></div>
+<div id="tip"></div>
+<script src="hmi-kit.js"></script>
+<script src="hmi-fabric.js"></script>
+<script>
+const MG='#3aa845',MC='#cfe0d4',MD='#9fb8a8',BODY='#e3e5f2';
+const M={speed:23.0,set:28.0,sv:[180,180,180,180,180,180,180,180],pv:[180,180,161,179,190,180,180,180],up:[25,25,25,25],lo:[100,100,100,100],ex:[30,30],
+ w:[163,178,193,208,220,220,220],cor:[-15,-15,-15,-12,0,0,0],pin:'Pin'};
+live(()=>{M.pv=M.pv.map((v,i)=>v+(M.sv[i]-v)*.05+jit(0,.9));M.speed=jit(23,.15)});
+
+function drv(x,y,name,on=true,r=26,info){const g=E('g',{class:'c'});const b=E('g',{class:on?'rot-slow':''},g);E('circle',{cx:x,cy:y,r,fill:'#222',stroke:'#fff','stroke-width':2},b);E('path',{d:`M${x} ${y}V${y-r}A${r} ${r} 0 0 1 ${x+r} ${y}ZM${x} ${y}V${y+r}A${r} ${r} 0 0 1 ${x-r} ${y}Z`,fill:on?MG:'#888'},b);E('rect',{x:x-r*.35,y:y-r*.35,width:r*.7,height:r*.7,fill:'#e8c21a'},g);
+ let o=on;g.addEventListener('click',()=>{o=!o;b.classList.toggle('rot-slow',o);b.children[1].setAttribute('fill',o?MG:'#888')});g.tip=()=>({t:name,r:[['Drive',o?'RUNNING':'STOPPED'],...(info?info():[]),['Action','Click to start/stop']]});return g}
+const cell=(x,y,w,h,txt,fill=MC,col=NV,fs=28)=>box(x+w/2,y+h/2,w,h,fill,txt,col,fs);
+
+function line(y0){const g=G(`translate(0 ${y0})`),keep=P;P=g;
+ rc(30,380,2840,12,'#000');
+ // padder
+ rc(60,220,200,150,BODY,{stroke:NV,'stroke-width':4});E('path',{d:'M70 300H250L230 360H90Z',fill:PIPE,opacity:.75});drv(130,200,'Padder 50 m/min',true,30,()=>[['Speed','50 m/min'],['Pressure','2.4 bar']]);drv(195,200,'Padder Lower Roll',true,30);LB(160,120,'Padder',22);
+ // inlet
+ rc(300,180,260,200,BODY,{stroke:NV,'stroke-width':4});drv(360,240,'Overfeed Top',true,22,()=>[['Overfeed','30.0 %']]);drv(360,310,'Overfeed Bottom',true,22,()=>[['Overfeed','0.0 %']]);drv(470,270,'Selvedge Uncurler',true,22);LB(430,120,'Inlet · '+M.pin,22);
+ // chambers 4 x 2 fields
+ for(let c=0;c<4;c++){const x=600+c*400;rc(x,150,390,230,BODY,{stroke:NV,'stroke-width':4});E('path',{d:`M${x+195} 150V380`,stroke:NV,'stroke-width':2,'stroke-dasharray':'8 6'});
+  for(let f=0;f<2;f++){const z=c*2+f,cx=x+100+f*195;fan(cx,230,'Circulation Fan Zone '+(z+1),true,64);const t=TX(cx,320,26,fx(M.pv[z],0)+' °C',NV);live(()=>t.textContent=fx(M.pv[z],0)+' °C');tip(t,()=>({t:'Zone '+(z+1),r:[['Set',M.sv[z]+' °C'],['Actual',fx(M.pv[z])+' °C']]}));LB(cx,360,'Zone '+(z+1),20,NV)}
+  LB(x+195,182,'Chamber '+(c+1),20,NV)}
+ [[0,700],[1,1900]].forEach(([i,x])=>{E('path',{d:`M${x} 150V70H${x+80}V150`,fill:'#d8dbe8',stroke:NV,'stroke-width':4});fan(x+40,40,'Exhaust Fan '+(i+1),true,52);LB(x+140,50,'Exhaust '+(i+1)+' · '+M.ex[i]+' %',20,'#fff','start')});
+ // delivery
+ rc(2240,200,220,180,BODY,{stroke:NV,'stroke-width':4});drv(2300,260,'Delivery Overfeed',true,22,()=>[['Overfeed','1.0 %']]);rl(2390,300,44,'Cooling Cylinder','#e8f4ff','#1b6f8f');LB(2350,120,'Delivery / Cooling',22);
+ E('path',{d:'M2500 380V110H2860V380',fill:'none',stroke:NV,'stroke-width':10});rl(2680,300,64,'Batcher Roll','#ff7a3a','#ffc09a');LB(2680,120,'Batcher',22);
+ E('path',{d:'M560 378H2240',stroke:'#555','stroke-width':6,'stroke-dasharray':'14 8'});tip(E('rect',{x:560,y:370,width:1680,height:18,fill:'transparent'}),()=>({t:'Pin / Clip Chain',r:[['Mode',M.pin],['Speed',fx(M.speed)+' m/min'],['Set',fx(M.set)+' m/min']]}));
+ cloth('M70 300L130 170L195 232L300 260L360 214L360 336L470 244L560 372H2240L2300 230L2390 254L2680 236',()=>[['Line Speed',fx(M.speed)+' m/min'],['Set',fx(M.set)+' m/min']]);
+ P=keep}
+
+function status(){
+ line(150);
+ panel(30,580,780,880,'Drives');
+ [['Padder','50','m/min',1],['Dancer','-0.3','Volts',1],['Overfeed Top','30.0','%',1],['Overfeed Bottom','0.0','%',1],['Selvedge Uncurler','ON','',1],['Delivery Overfeed','1.0','%',1],['Cooling Cylinder','30','m/min',1],['Batcher','50','%',1]].forEach(([n,v,u],i)=>{const y=670+i*98;drv(90,y,n,true,30);LB(140,y+9,n,24,'#fff','start');const b=cell(470,y-26,200,52,v,MC,NV,28);b.tip=()=>({t:n,r:[['Value',v+' '+u]]});LB(690,y+8,u,22,'#fff','start')});
+ panel(830,580,1320,880,'Chambers');
+ const hx=[900,1050,1250,1440,1640,1850,2050];['Zone','Fan','SV °C','PV °C','Upper %','Lower %','Exhaust'].forEach((h,i)=>LB(hx[i],660,h,22));
+ for(let z=0;z<8;z++){const y=700+z*86;cell(850,y,100,76,String(z+1),MD,NV,28);const l=lamp(1050,y+38,'Circulation Fan Zone '+(z+1),true,18,'#f2c400');
+  cell(1180,y,140,76,String(M.sv[z]),MC,NV,30);const p=cell(1370,y,140,76,fx(M.pv[z],0),MG,'#fff',30);live(()=>p.set(fx(M.pv[z],0)));p.tip=()=>({t:'Zone '+(z+1)+' Temperature',r:[['Set',M.sv[z]+' °C'],['Actual',fx(M.pv[z])+' °C'],['Deviation',fx(M.pv[z]-M.sv[z])+' °C']]});
+  if(z%2===0){const k=z/2;cell(1570,y,140,162,M.up[k]+' %',MC,NV,30).tip=()=>({t:'Upper Nozzles Chamber '+(k+1),r:[['Fan Speed',M.up[k]+' %']]});cell(1780,y,140,162,M.lo[k]+' %',MC,NV,30).tip=()=>({t:'Lower Nozzles Chamber '+(k+1),r:[['Fan Speed',M.lo[k]+' %']]});lamp(2050,y+80,'Exhaust Damper Chamber '+(k+1),true,18,'#f2c400')}}
+ panel(2170,580,700,880,'Fabric Width');
+ M.w.forEach((w,i)=>{const y=690+i*104;LB(2210,y+10,String(i+1),28,'#fff','start');drv(2290,y,'Width Spindle '+(i+1),false,24);const b=cell(2420,y-34,300,68,w+' CM',i===5?NV:MC,i===5?'#fff':NV,32);b.tip=()=>({t:'Width Spindle '+(i+1),r:[['Set Width',w+' cm'],['Correction',M.cor[i]+' cm']]})});
+}
+
+function inlet(){
+ rc(30,1300,2840,16,'#000');
+ // J-scray
+ E('path',{d:'M90 640V1180Q90 1290 200 1290H330V1120',fill:'none',stroke:NV,'stroke-width':14});for(let y=1180;y<1270;y+=14)E('path',{d:`M120 ${y}Q210 ${y-20} 300 ${y}`,stroke:CR,'stroke-width':4,fill:'none'});LB(210,610,'Inlet J-Scray',24);
+ rl(140,560,26,'Inlet Guide Roller');
+ // weft straightener
+ rc(400,560,300,300,BODY,{stroke:NV,'stroke-width':4,rx:12});LB(550,540,'Weft Straightener',24);
+ [[470,640],[630,640],[470,780],[630,780]].forEach(([x,y],i)=>rl(x,y,24,(i<2?'Bow':'Skew')+' Roller '+(i%2+1)));E('path',{d:'M430 710L670 700',stroke:'#8a8fb0','stroke-width':10});
+ val(470,920,'Bow Correction',0.4,'%',{fill:MC,col:NV,w:140,h:48,d:1,drift:.05});LB(470,965,'Bow %',20);val(630,920,'Skew Correction',-0.2,'%',{fill:MC,col:NV,w:140,h:48,d:1,drift:.05});LB(630,965,'Skew %',20);
+ // overfeed
+ rc(800,520,320,470,BODY,{stroke:NV,'stroke-width':4,rx:12});LB(960,500,'Overfeed',24);
+ drv(900,620,'Upper Overfeed Roller',true,44,()=>[['Overfeed','30.0 %'],['Speed',fx(M.speed*1.3)+' m/min']]);drv(900,890,'Lower Overfeed Roller',true,44,()=>[['Overfeed','0.0 %'],['Speed',fx(M.speed)+' m/min']]);
+ val(1040,620,'Upper Overfeed',30.0,'%',{fill:'#fff',col:NV,w:130,h:52,fs:28});val(1040,890,'Lower Overfeed',0.0,'%',{fill:'#fff',col:NV,w:130,h:52,fs:28});
+ drv(860,755,'Dancer Roller',true,22,()=>[['Dancer','-0.3 Volts']]);
+ // uncurlers + edge feelers
+ rc(1190,600,460,320,BODY,{stroke:NV,'stroke-width':4,rx:12});LB(1420,580,'Selvedge Uncurlers / Edge Feelers',22);
+ drv(1235,700,'Selvedge Uncurler Operator Side',true,24);drv(1235,820,'Selvedge Uncurler Drive Side',true,24);
+ LB(1470,668,'Operator side',20,NV);adj(1470,710,'Edge Feeler Operator Side',-.1,.1,'%');LB(1470,790,'Drive side',20,NV);adj(1470,832,'Edge Feeler Drive Side',-1.2,.1,'%');
+ // chain inlet
+ const sp=E('circle',{cx:1710,cy:770,r:46,fill:'#e3e5f2',stroke:NV,'stroke-width':5});const spk=E('path',{d:'M1670 770H1750M1710 730V810',stroke:NV,'stroke-width':6,class:'rot-slow'});tip(sp,()=>({t:'Chain Inlet Sprocket',r:[['Chain Speed',fx(M.speed)+' m/min'],['Mode',M.pin]]}));
+ E('path',{d:'M1710 724H2860M1710 816H2860',stroke:'#555','stroke-width':10,'stroke-dasharray':'18 8'});
+ const br=G();P=br;E('circle',{cx:1860,cy:700,r:44,fill:'#f4e9b0',stroke:'#8a6a00','stroke-width':4});const bb=E('g',{class:'rot'});for(let k=0;k<12;k++){const a=k*Math.PI/6;E('path',{d:`M${1860+Math.cos(a)*16} ${700+Math.sin(a)*16}L${1860+Math.cos(a)*42} ${700+Math.sin(a)*42}`,stroke:'#8a6a00','stroke-width':4},bb)}P=br.parentNode;
+ tip(br,()=>({t:'Pinning Brush Wheel',r:[['State',M.pin==='Pin'?'ENGAGED':'RAISED'],['Pressure','1.2 bar']]}));LB(1860,630,'Pinning Brush',22);
+ box(2050,660,110,46,'#e8c21a','1',NV,26).tip=()=>({t:'Chain Entry Sensor',r:[['State','FABRIC DETECTED']]});LB(2050,630,'Entry Sensor',20);
+ LB(2500,700,'Pin chain → Chamber 1',24,NV);
+ cloth('M330 1130V600L140 534L470 616L630 664L470 804L630 756L900 576L860 731L900 934L1235 676L1235 844L1710 770H2860',()=>[['Section','Inlet'],['Mode',M.pin],['Speed',fx(M.speed)+' m/min']]);
+ // holding mode + summary
+ panel(2280,160,580,260,'Fabric Holding');
+ const pin=btn(2430,320,220,90,'Pin',()=>{M.pin='Pin';pin.firstChild.setAttribute('fill',YEL);clip.firstChild.setAttribute('fill','#dfe2ee')},YEL,NV,30),clip=btn(2710,320,220,90,'Clip',()=>{M.pin='Clip';clip.firstChild.setAttribute('fill',YEL);pin.firstChild.setAttribute('fill','#dfe2ee')},'#dfe2ee',NV,30);
+ pin.tip=()=>({t:'Holding Mode',r:[['Active',M.pin]]});clip.tip=pin.tip;
+ panel(1700,960,1160,300,'Inlet Summary');
+ [['Inlet Speed',()=>fx(M.speed*1.3)+' m/min'],['Chain Speed',()=>fx(M.speed)+' m/min'],['Overfeed',()=>'30.0 %'],['Inlet Width',()=>M.w[0]+' cm']].forEach(([l,f],i)=>{const x=1850+(i%2)*560,y=1060+(i>>1)*100;LB(x-110,y+8,l,24,'#fff','start');const b=box(x+280,y,220,56,TEAL,f(),'#fff',28);b.tip=()=>({t:l,r:[['Value',f()]]});live(()=>b.set(f()))});
+}
+
+function chambers(){
+ panel(40,160,1180,800,'Chamber Cross-Section');
+ rc(110,300,1040,560,'#e3e5f2',{stroke:NV,'stroke-width':5,rx:20});E('path',{d:'M160 420Q600 300 1100 420',fill:'none',stroke:'#c5c8de','stroke-width':60});E('path',{d:'M160 700H1100',stroke:'#c5c8de','stroke-width':40});
+ [[360,620],[860,620]].forEach(([x,y],i)=>{E('circle',{cx:x,cy:y,r:120,fill:'#fff',stroke:'#2f8f3f','stroke-width':6});const b=E('g',{class:'rot'});for(let k=0;k<24;k++){const a=k*Math.PI/12;E('path',{d:`M${x+Math.cos(a)*70} ${y+Math.sin(a)*70}L${x+Math.cos(a)*112} ${y+Math.sin(a)*112}`,stroke:'#2f8f3f','stroke-width':6},b)}E('circle',{cx:x,cy:y,r:40,fill:'#d8f0d8',stroke:'#2f8f3f','stroke-width':4});
+  tip(b,()=>({t:'Radial Fan '+(i+1),r:[['Speed',(i?M.lo[0]:M.up[0])+' %'],['Motor','15 kW'],['State','RUNNING']]}))});
+ cloth('M110 560H1150',()=>[['Section','Chamber'],['Speed',fx(M.speed)+' m/min']]);LB(630,940,'Chambers Montex',24,'#fff');
+ panel(40,990,1180,470,'Gas Burners');
+ for(let z=0;z<8;z++){const x=115+z*143;LB(x,1080,'Burner '+(z+1),20);flame(x,1200,'Burner Zone '+(z+1),true,1.1);const o=box(x,1260,110,46,MC,'0 %',NV,24);const f=()=>Math.max(0,Math.min(100,35+(M.sv[z]-M.pv[z])*4));live(()=>o.set(fx(f(),0)+' %'));o.tip=()=>({t:'Burner Zone '+(z+1)+' Modulation',r:[['Output',fx(f(),0)+' %'],['Zone PV',fx(M.pv[z])+' °C'],['Zone SV',M.sv[z]+' °C']]});lamp(x,1340,'Flame Monitor Zone '+(z+1),true,14)}
+ LB(630,1420,'Gas pressure 38 mbar · Combustion air OK',22,'#fff');
+ [['Exhaust',['Auto','Man']],['Circulation',['Aero','Eco']],['Damper',['Auto','Man']]].forEach(([n,o],i)=>{LB(1340+i*220,190,n,24);sel(1340+i*220,236,o,0,170,n+' Mode')});
+ LB(1350,320,'Exhaust 1',22);val(1500,312,'Exhaust 1',30,'%',{fill:MC,col:NV,w:130,h:50,d:0,drift:.4});LB(1700,320,'Exhaust 2',22);val(1850,312,'Exhaust 2',30,'%',{fill:MC,col:NV,w:130,h:50,d:0,drift:.4});
+ const cx=[1300,1430,1600,1780,1960,2150,2340,2560,2760];['','Fan','SV °C','PV °C','Up SV','Up PV','Lo SV','Lo PV','Total'].forEach((h,i)=>LB(cx[i],400,h,22));
+ for(let z=0;z<8;z++){const y=420+z*130;cell(1250,y,100,120,String(z+1),MD,NV,30);lamp(1430,y+60,'Circulation Zone '+(z+1),true,20,'#f2c400');cell(1520,y,160,120,String(M.sv[z]),'#fff',NV,32);const p=cell(1700,y,160,120,fx(M.pv[z],0),MG,'#fff',32);live(()=>p.set(fx(M.pv[z],0)));p.tip=()=>({t:'Zone '+(z+1),r:[['Set',M.sv[z]+' °C'],['Actual',fx(M.pv[z])+' °C']]});
+  if(z%2===0){const k=z/2;cell(1880,y,160,250,M.up[k]+'','#fff',NV,34);val(2150,y+125,'Upper Nozzle Chamber '+(k+1),M.up[k],'%',{fill:MG,col:'#fff',w:160,h:250,fs:34,d:0,drift:.3});cell(2260,y,160,250,M.lo[k]+'','#fff',NV,34);val(2560,y+125,'Lower Nozzle Chamber '+(k+1),M.lo[k],'%',{fill:MG,col:'#fff',w:200,h:250,fs:34,d:0,drift:.3,max:100});lamp(2760,y+125,'Exhaust Chamber '+(k+1),true,22,'#f2c400')}}
+}
+
+function width(){
+ panel(40,160,2820,380,'Chain Width Profile (top view)');
+ const xs=M.w.map((_,i)=>420+i*340),cy=360,k=.75,tp=xs.map((x,i)=>[x,cy-M.w[i]*k/2]),bp=xs.map((x,i)=>[x,cy+M.w[i]*k/2]);
+ E('path',{d:'M'+[...tp,...bp.slice().reverse()].map(p=>p.join(' ')).join('L')+'Z',fill:'#f4d7d7',opacity:.85});
+ cloth('M'+tp.map(p=>p.join(' ')).join('L'),()=>[['Rail','Operator side']]);cloth('M'+bp.map(p=>p.join(' ')).join('L'),()=>[['Rail','Drive side']]);
+ xs.forEach((x,i)=>{E('path',{d:`M${x} ${tp[i][1]-10}V${bp[i][1]+10}`,stroke:NV,'stroke-width':3,'stroke-dasharray':'6 6'});TX(x,cy+10,28,M.w[i]+' cm',NV)});LB(200,370,'Inlet',26,NV);LB(2700,370,'Delivery',26,NV);
+ M.w.forEach((w,i)=>{const x=xs[i];LB(x,600,String(i+1),28);lamp(x+40,592,'Spindle '+(i+1)+' Reference',true,12,'#c5c8de');box(x,640,180,44,'#e3e5f2',String(w),NV,26);
+  rc(x-90,680,180,640,'#c4b06a',{stroke:'#fff','stroke-width':3});const bl=rc(x-80,700,160,200-w/2+80,'#1a2ad8');const yl=rc(x-80,700+200-w/2+80,160,600-(200-w/2+80)-20,'#f2d21a');
+  tip(bl,()=>({t:'Spindle '+(i+1),r:[['Width',w+' cm'],['Correction',M.cor[i]+' cm'],['Motor','READY']]}));tip(yl,bl.tip);
+  box(x,1360,150,56,'#f2d21a',String(M.cor[i]),NV,30).tip=()=>({t:'Spindle '+(i+1)+' Correction',r:[['Value',M.cor[i]+' cm']]})});
+ btn(2780,1360,120,56,'Reset',()=>{},TEAL,'#fff',24);
+}
+
+HMI({screens:[{name:'Status',draw:status},{name:'Inlet',draw:inlet},{name:'Chambers',draw:chambers},{name:'Fabric Width',draw:width}],
+ stats:[{v:'23.0',fill:RED,live:b=>b.set(fx(M.speed)),tip:()=>({t:'Actual Speed',r:[['Speed',fx(M.speed)+' m/min']]})},{l:'m/min',v:'28.0',fill:TEAL,col:'#fff',tip:()=>({t:'Set Speed',r:[['Set',fx(M.set)+' m/min']]})}]});
+</script></body></html>

@@ -14,18 +14,8 @@ export const navigationMenu: NavigationItem[] = [
     ],
   },
   {
-    id: 'printing',
-    label: 'Printing',
-    icon: 'printing',
-    hasSubmenu: true,
-    subitems: [
-      { id: 'printing-quality', label: 'Quality Parameters', iconType: 'circle' },
-      { id: 'printing-live', label: 'Live Monitoring', iconType: 'image' },
-    ],
-  },
-  {
-    id: 'dyeing',
-    label: 'Dyeing',
+    id: 'ltm-40',
+    label: 'LTM 40',
     icon: 'dyeing',
     hasSubmenu: true,
     subitems: [

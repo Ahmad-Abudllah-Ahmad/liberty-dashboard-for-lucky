@@ -9,7 +9,7 @@ export const ETPNetworkDashboard: React.FC = () => {
       <div className="content-header-row">
         <div>
           <h2>ETP Network • Effluent Treatment &amp; Water Recovery Flow Diagram</h2>
-          <p className="content-subtitle">Liberty Mills Limited • Biological MBR &amp; Reverse Osmosis Recycling Network (10.252.1.247:8018/etp/35)</p>
+          <p className="content-subtitle">Lucky Textile • Biological MBR &amp; Reverse Osmosis Recycling Network (10.252.1.247:8018/etp/35)</p>
         </div>
         <div className="header-actions-group">
           <span className="badge-tag green">RECYCLING EFFICIENCY: 78.5% RECOVERED</span>
@@ -147,7 +147,7 @@ export const ETPNetworkDashboard: React.FC = () => {
               <div className="pfd-metric-line"><span>DO Aeration:</span> <strong className="font-mono text-green">2.45 mg/L</strong></div>
             </div>
             <div className="pfd-liquid-bar">
-              <div className="pfd-liquid-fill" style={{ width: '85%', background: '#0284c7' }}></div>
+              <div className="pfd-liquid-fill" style={{ width: '85%', background: '#3a42a8' }}></div>
             </div>
           </div>
 
@@ -172,7 +172,7 @@ export const ETPNetworkDashboard: React.FC = () => {
               <div className="pfd-metric-line"><span>Booster Pumps:</span> <strong className="text-green">2 Running</strong></div>
             </div>
             <div className="pfd-liquid-bar">
-              <div className="pfd-liquid-fill" style={{ width: '82.1%', background: '#06b6d4' }}></div>
+              <div className="pfd-liquid-fill" style={{ width: '82.1%', background: '#4a51b0' }}></div>
             </div>
           </div>
 

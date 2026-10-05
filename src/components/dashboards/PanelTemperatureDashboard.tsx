@@ -28,7 +28,7 @@ export const PanelTemperatureDashboard: React.FC = () => {
       <div className="content-header-row">
         <div>
           <h2>Electrical Panel Temperature & Thermal Monitoring</h2>
-          <p className="content-subtitle">Liberty Mills Limited • Infrared Continuous Busbar & Switchgear Thermal Protection</p>
+          <p className="content-subtitle">Lucky Textile • Infrared Continuous Busbar & Switchgear Thermal Protection</p>
         </div>
         <div className="header-actions-group">
           <span className="badge-tag yellow">1 THERMAL HOTSPOT WARNING DETECTED</span>

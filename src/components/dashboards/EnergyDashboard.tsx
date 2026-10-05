@@ -9,7 +9,7 @@ export const EnergyDashboard: React.FC = () => {
       <div className="content-header-row">
         <div>
           <h2>Energy Telemetry & Power Management</h2>
-          <p className="content-subtitle">Liberty Mills Limited • Substation & Internal Power Generation Center</p>
+          <p className="content-subtitle">Lucky Textile • Substation & Internal Power Generation Center</p>
         </div>
         <div className="header-actions-group">
           <div className="btn-group-pill">

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Goller Pad Steam Range HMI</title>
+<link rel="stylesheet" href="hmi-kit.css">
+</head><body>
+<div id="wrap"><svg id="s" viewBox="0 0 2900 1484" preserveAspectRatio="xMidYMid meet"></svg></div>
+<div id="tip"></div>
+<script src="hmi-kit.js"></script>
+<script src="hmi-fabric.js"></script>
+<script>
+const GB='#2d3fb0',GF='#eceefa',PK='#f39bd0',GY='#ffe94a',LBL='#4a5bd0';
+const D={speed:0,meter:2478,lot:'000006800',weight:340,
+ chem:[['Sequesting',2.0],['Stabilizer',4.0],['Caustic',6.0],['Wetting',3.0],['H2O2',16.0],['Standby',0],['Standby',0]],
+ dip:{inc:40,exc:100,add:25},acid:3.0,
+ pre:[{t:'630A1',sv:67,pv:67},{t:'640A1',sv:67,pv:67},{t:'650A1',sv:70,pv:68},{t:'660A1',sv:55,pv:53},{t:'670A1',sv:0,pv:41},{t:'571A1',sv:0,pv:39}],
+ stm:[{sv:98,pv:93},{sv:98,pv:95},{sv:98,pv:97}],
+ wash:[{t:'700A1',sv:75,pv:74},{t:'710A1',sv:75,pv:72},{t:'720A1',sv:60,pv:57},{t:'730A1',sv:55,pv:55},{t:'740A1',sv:90,pv:89},{t:'750A1',sv:0,pv:70}],
+ dry:[{sv:90,pv:84},{sv:95,pv:94},{sv:90,pv:87}],
+ flow:[[19.62,18.72],[9.8,9.89],[9.8,12.64],[5.8,3.62]]};
+const drift=a=>a.forEach(z=>z.pv=z.pv+((z.sv||z.pv)-z.pv)*.05+jit(0,.5));
+live(()=>{drift(D.pre);drift(D.stm);drift(D.wash);drift(D.dry)});
+
+function comp(x,y,w,h,name,info){const g=G();const k=P;P=g;rc(x,y,w,h,GF,{stroke:GB,'stroke-width':3});rc(x+6,y+h*.55,w-12,h*.42,'#9fc3f5',{opacity:.6});E('path',{d:`M${x+14} ${y+18}H${x+w-14}`,stroke:GB,'stroke-width':2});for(let i=0;i<5;i++){const cx=x+14+i*(w-28)/4;E('circle',{cx,cy:y+14,r:7,fill:'#fff',stroke:GB,'stroke-width':2,'data-roll':1});if(i<4)E('circle',{cx:cx+(w-28)/8,cy:y+h-16,r:7,fill:'#fff',stroke:GB,'stroke-width':2,'data-roll':1})}P=k;if(info)tip(g,info);return g}
+function stack(x,y,n,info){const g=G();const k=P;P=g;E('path',{d:`M${x-10} ${y}L${x+70} ${y-60}L${x+150} ${y}Z`,fill:'#d8dbe8',stroke:GB,'stroke-width':3});E('circle',{cx:x+70,cy:y-26,r:20,fill:'#fff',stroke:GB,'stroke-width':3});E('path',{d:`M${x+56} ${y-26}H${x+84}M${x+70} ${y-40}V${y-12}`,stroke:GB,'stroke-width':3,class:'rot'});
+ for(let r=0;r<6;r++)for(let c=0;c<2;c++)E('circle',{cx:x+35+c*70,cy:y+40+r*58,r:28,fill:'#e6e8f6',stroke:GB,'stroke-width':3,'data-roll':1});P=k;if(info)tip(g,info);return g}
+const tag=(x,y,t,v='0.0')=>{box(x,y-24,64,22,PK,v,'#333',16);LB(x,y+4,t,16,LBL)};
+
+function line(y0){const g=G(`translate(0 ${y0})`),k=P;P=g;
+ // top tier
+ rc(30,300,1420,10,'#555');
+ E('path',{d:'M70 300L140 200L210 300',fill:'none',stroke:'#555','stroke-width':6});E('circle',{cx:140,cy:200,r:72,fill:'#cdd3e6',stroke:'#555','stroke-width':3});E('circle',{cx:230,cy:230,r:56,fill:'#cdd3e6',stroke:'#555','stroke-width':3});LB(150,110,'Batch Unwind',18,NV);
+ E('path',{d:'M300 300V40H380V300M300 120H380',fill:'none',stroke:GB,'stroke-width':4});LB(340,24,'Expander',18,NV);
+ D.pre.forEach((c,i)=>comp(410+i*140,120,128,180,'Pre-wash '+(i+1),()=>({t:'Pre-wash Compartment '+(i+1)+' · '+c.t,r:[['Temp SV',c.sv+' °C'],['Temp PV',fx(c.pv)+' °C'],['Level','OK']]})));
+ rc(1260,170,120,130,GF,{stroke:GB,'stroke-width':3});E('path',{d:'M1270 250H1370V292H1270Z',fill:PK,opacity:.8});LB(1320,150,'Dipsat',18,NV);
+ E('path',{d:'M1380 170L1460 20',stroke:GB,'stroke-width':5});
+ rc(1460,-40,1400,180,GF,{stroke:GB,'stroke-width':4,rx:30});for(let i=0;i<34;i++){const x=1500+i*40;E('path',{d:`M${x} -20V110`,stroke:'#7a8ae0','stroke-width':3});E('circle',{cx:x,cy:-20,r:6,fill:'#fff',stroke:GB,'stroke-width':2,'data-roll':1})}rc(1480,110,1360,14,'#9aa0c8');LB(1480,-56,'Steamer',20,NV,'start');
+ D.stm.forEach((s,i)=>{const t=TX(1700+i*450,80,24,'',NV);live(()=>t.textContent=fx(s.pv,0)+' °C');tip(t,()=>({t:'Steamer Zone '+(i+1),r:[['Set',s.sv+' °C'],['Actual',fx(s.pv)+' °C'],['Saturation','100 %']]}))});
+ E('circle',{cx:2860,cy:220,r:22,fill:'#fff',stroke:GB,'stroke-width':3});TX(2860,228,22,'A',GB);pipe('M2840 140V200',null,'#7a8ae0',4,false);
+ // bottom tier
+ rc(30,700,2840,10,'#555');
+ E('circle',{cx:60,cy:440,r:22,fill:'#fff',stroke:GB,'stroke-width':3});TX(60,448,22,'A',GB);
+ D.wash.forEach((c,i)=>comp(100+i*140,520,128,180,'Washer '+(i+1),()=>({t:'Washer '+(i+1)+' · '+c.t,r:[['Temp SV',c.sv+' °C'],['Temp PV',fx(c.pv)+' °C'],['Counter-flow','ACTIVE']]})));
+ D.dry.forEach((s,i)=>stack(1000+i*240,360,i+1,()=>({t:'Cylinder Dryer Stack '+(i+1),r:[['Set',s.sv+' °C'],['Actual',fx(s.pv)+' °C'],['Steam','0.0 bar'],['Condensate','OK']]})));
+ D.dry.forEach((s,i)=>{const t=TX(1140+i*240,560,24,'',NV);live(()=>t.textContent=fx(s.pv,0)+' °C')});LB(1300,740,'Cylinder Dryer',20,'#fff');
+ E('path',{d:'M1780 700V410M1920 700V410M1760 410H1940',fill:'none',stroke:GB,'stroke-width':5});[[1800,430],[1900,430]].forEach(([x,y],i)=>rl(x,y,14,'Exit Expander Roller '+(i+1),'#fff',GB));LB(1850,390,'Exit Expander',18,NV);
+ E('path',{d:'M2000 440Q2000 690 2150 690Q2300 690 2300 440',fill:'none',stroke:GB,'stroke-width':6});LB(2150,420,'Exit J-Scray',18,NV);
+ E('path',{d:'M2440 700L2540 560L2640 700',fill:'none',stroke:'#555','stroke-width':6});E('circle',{cx:2540,cy:560,r:80,fill:'#5ce05c',stroke:'#555','stroke-width':3});TX(2540,568,22,'Batch-1','#0a3a0a');
+ E('circle',{cx:2760,cy:560,r:80,fill:'#cdd3e6',stroke:'#555','stroke-width':3});TX(2760,568,22,'Batch-2','#333');LB(2650,450,'Batching',18,NV);
+ // fabric
+ let p='M140 128L230 174L300 60L380 60L410 120';D.pre.forEach((_,i)=>{const x=410+i*140;p+=`L${x+14} 134`;for(let j=0;j<4;j++)p+=`L${x+26.5+j*25} 284L${x+39+j*25} 134`});p+='L1280 260L1360 260L1460 20';for(let i=0;i<34;i++){const x=1500+i*40;p+=`L${x} -20L${x+20} 110`}p+='L2840 140';
+ cloth(p,()=>[['Tier','Upper · pre-wash → steamer'],['Speed',fx(D.speed)+' m/min']]);
+ let q='M82 440L100 520';D.wash.forEach((_,i)=>{const x=100+i*140;q+=`L${x+14} 534`;for(let j=0;j<4;j++)q+=`L${x+26.5+j*25} 684L${x+39+j*25} 534`});
+ D.dry.forEach((_,i)=>{const x=1000+i*240;q+=`L${x+35} 400`;for(let r=0;r<6;r++)q+=`L${x+(r%2?105:35)} ${400+r*58}`;q+=`L${x+150} 700`});q+='L1800 416L1900 416L2010 450Q2150 700 2290 450L2540 480';
+ cloth(q,()=>[['Tier','Lower · wash → dry → batch'],['Meter',fx(D.meter,0)+' m']]);
+ P=k;return g}
+
+function overview(){
+ line(250);
+ // dosing mini
+ D.chem.forEach(([n,v],i)=>{const x=420+i*110;const on=v>0;E('path',{d:`M${x-16} 160h32v40h-32z`,fill:'#fff',stroke:GB,'stroke-width':2});rc(x-14,178,28,20,on?(i>3?'#d01a6a':'#8a2be2'):'#bbb');LB(x,152,String(i+1),18,NV);const l=lamp(x,220,n+' Dosing Pump',on,10,'#5ce05c')});
+ LB(1230,170,'Dipsat',18,NV);lamp(1230,200,'Dipsat Light',true,14,'#2ed82e');LB(1330,170,'WA6',18,NV);lamp(1330,200,'WA6 Light',true,14,'#2ed82e');
+ D.pre.forEach((c,i)=>tag(474+i*140,352,c.t));D.wash.forEach((c,i)=>tag(164+i*140,752,c.t));
+ // panels
+ panel(30,1010,760,450,'Process');
+ [['Machine state','Production',GRN],['Heating','disabled',RED],['Dosing','disabled',RED],['Lot',D.lot,'#fff'],['Weight',D.weight+' g/m','#fff'],['Meter','endless mode','#fff']].forEach(([l,v,c],i)=>{const y=1090+i*60;LB(70,y+8,l,24,'#fff','start');box(560,y,330,46,c,v,c==='#fff'?NV:'#fff',24)});
+ const fo=btn(410,1440,220,40,'Feedout',()=>{},RED,'#fff',22);
+ panel(810,1010,760,450,'Chemicals (ml/kg)');D.chem.forEach(([n,v],i)=>{const y=1090+i*52;LB(850,y+8,(i+1)+'  '+n,24,'#fff','start');box(1420,y,160,44,GY,fx(v,1)+' ml/kg',NV,22).tip=()=>({t:n+' Dosing',r:[['Set',fx(v,1)+' ml/kg'],['Pump',v>0?'READY':'STANDBY']]})});
+ panel(1590,1010,1280,450,'Messages');
+ [['1023475745','09/11/12','21:43:00','Error: IO device failure · IO device not found x800A1',RED],['1030','26/09/26','16:21:06','Warning: door switches closed F2-4; 120S2 .S3','#c9a500'],['1031','02/10/26','08:10:12','Heating disabled by operator','#4a5bd0'],['1032','02/10/26','08:10:15','Dosing disabled by operator','#4a5bd0']].forEach(([id,d,t,m,c],i)=>{const y=1090+i*80;rc(1620,y-30,1220,64,'#fff',{stroke:c,'stroke-width':3,rx:6});rc(1620,y-30,12,64,c);LB(1650,y+8,id,20,NV,'start');LB(1820,y+8,d+'  '+t,20,NV,'start');LB(2080,y+8,m,20,'#222','start')});
+}
+
+function dosing(){
+ const cols=['#8a2be2','#5a4ad0','#2a6ad8','#2ab0c8','#d01a6a','#999','#999'];
+ pipe('M220 900H2000','Chemical Mixing Header',PK,12,true,()=>[['Mixture','Peroxide bleach liquor'],['Total',fx(D.chem.reduce((a,c)=>a+c[1],0),1)+' ml/kg']]);
+ D.chem.forEach(([n,v],i)=>{const x=280+i*240;LB(x,190,(i+1)+'. '+n,24,NV);tank(x-70,220,140,300,n+' Day Tank',rnd(45,90),{col:cols[i],cap:500});
+  pipe(`M${x} 520V840`,null,cols[i],8,v>0);valve(x,580,n+' Outlet Valve',v>0,true,16);pump(x,680,n+' Dosing Pump',v>0,26,o=>[['Set',fx(v,1)+' ml/kg'],['Flow',o?fx(v*D.weight/1000*.5,2)+' L/min':'0.00 L/min']]);
+  const fm=E('circle',{cx:x,cy:780,r:20,fill:'#fff',stroke:GB,'stroke-width':3});tip(fm,()=>({t:n+' Flowmeter',r:[['Flow',v>0?fx(jit(v*.17,.02),2)+' L/min':'0.00 L/min']]}));
+  box(x,960,170,48,GY,fx(v,1)+' ml/kg',NV,24).tip=()=>({t:n+' Set Point',r:[['Set',fx(v,1)+' ml/kg'],['Weight',D.weight+' g/m']]});box(x,1014,170,44,'#fff','-0.1 ml/kg','#333',20)});
+ // mixing tank -> dipsat
+ tank(2060,700,200,300,'Mixing Tank',58,{col:PK,cap:800});E('path',{d:'M2160 680V760',stroke:'#333','stroke-width':6});motor(2160,640,'MX1');
+ pipe('M2000 900H2060',null,PK,12);pipe('M2160 1000V1100H2460',null,PK,12);pump(2340,1100,'Dipsat Feed Pump',true,30);
+ rc(2460,980,380,240,GF,{stroke:GB,'stroke-width':4});E('path',{d:'M2480 1120H2820V1200H2480Z',fill:PK,opacity:.8});rl(2580,1010,26,'Dipsat Squeeze Top');rl(2700,1010,26,'Dipsat Squeeze Bottom');LB(2650,960,'Dipsat',26,NV);
+ panel(2420,260,440,360,'Dipsat');[['Incoming',D.dip.inc],['Exchange',D.dip.exc],['Addon',D.dip.add]].forEach(([n,v],i)=>{LB(2460,370+i*80,n,26,'#fff','start');box(2760,362+i*80,130,52,GY,v+' %',NV,26).tip=()=>({t:'Dipsat '+n,r:[['Value',v+' %']]})});
+ lamp(2500,580,'Dipsat Light',true,16,'#2ed82e');LB(2560,588,'Dipsat light',20,'#fff','start');lamp(2720,580,'WA6 Light',true,16,'#2ed82e');LB(2750,588,'WA6',20,'#fff','start');
+ // acid
+ panel(30,1120,700,330,'Acid Neutralisation · Washer 6');tank(80,1190,120,220,'Acid Tank',64,{col:'#f2a03a',cap:300});pump(320,1360,'Acid Dosing Pump',true,24);pipe('M200 1360H290',null,'#f2a03a',6);pipe('M350 1360H600',null,'#f2a03a',6);
+ LB(500,1220,'Set pH',24);box(500,1270,140,52,GY,fx(D.acid,1)+' pH',NV,26);const ap=val(640,1270,'Washer 6 pH',3.1,'pH',{fill:GRN,col:'#fff',w:130,h:52,d:1,drift:.05});LB(640,1220,'Actual',24);
+ LB(1400,1180,'Dosing is disabled while machine heating is off',24,'#fff');const st=box(1400,1240,520,56,RED,'DOSING DISABLED','#fff',26);st.classList.add('blink');
+}
+
+function temperature(){
+ line(300);
+ D.pre.forEach((c,i)=>{const x=474+i*140;pvsv(x,190,'Pre-wash '+(i+1)+' Temperature',c.sv,c.pv,'°C',{w:110,h:40,fs:24,d:0,pull:0});});
+ D.stm.forEach((s,i)=>pvsv(1700+i*450,170,'Steamer Zone '+(i+1)+' Temperature',s.sv,s.pv,'°C',{w:120,h:40,fs:24,d:0,pull:0}));
+ D.wash.forEach((c,i)=>pvsv(164+i*140,1040,'Washer '+(i+1)+' Temperature',c.sv,c.pv,'°C',{w:110,h:40,fs:24,d:0,pull:0}));
+ D.dry.forEach((s,i)=>pvsv(1140+i*240,1066,'Dryer Stack '+(i+1)+' Temperature',s.sv,s.pv,'°C',{w:120,h:40,fs:24,d:0,pull:0}));
+ LB(90,1050,'SV',22,'#fff','start');LB(90,1096,'PV',22,'#fff','start');
+ pipe('M120 1200H2700','Steam Supply',STEAM,12,true,()=>[['Header','4.0 bar'],['Heating','DISABLED']]);LB(2720,1208,'Steam',22,'#fff','start');
+ [...D.wash.map((_,i)=>164+i*140),...D.dry.map((_,i)=>1140+i*240)].forEach((x,i)=>{pipe(`M${x} 1200V1150`,null,STEAM,6);valve(x,1176,'Steam Valve '+(i+1),false,true,12)});
+ panel(2000,1260,860,200,'Water Lock');pvsv(2300,1330,'Water Lock Temperature',40,41,'°C',{w:130,h:46,d:0});LB(2160,1342,'SV',22,'#fff');LB(2160,1394,'PV',22,'#fff');LB(2600,1360,'Heating disabled',24,YEL);
+}
+
+function water(){
+ line(300);
+ pipe('M1240 290H120','Fresh Water Main',WATER,12,true,()=>[['Pressure','3.2 bar'],['Temp','28 °C']]);LB(1260,298,'Fresh water',22,'#fff','start');
+ D.pre.forEach((c,i)=>{const x=474+i*140;pipe(`M${x} 290V410`,null,WATER,6,i%2===0);valve(x,350,'Pre-wash '+(i+1)+' Water Valve',i%2===0,true,14)});
+ D.flow.forEach(([sv,pv],i)=>{const x=[474,754,1034,1650][i],y=i<3?170:1130;LB(x,y-36,'Water Flow 0'+(i+1)+(i===3?' · Washer 5':''),20,NV);pvsv(x,y,'Water Flow 0'+(i+1),sv,pv,'L/min',{w:110,h:40,fs:22,d:1,pull:.05,drift:.3})});
+ pipe('M960 1066H110','Washer Counter-flow Feed',WATER,10,true);D.wash.forEach((c,i)=>{const x=164+i*140;pipe(`M${x} 1066V1004`,null,WATER,6);valve(x,1034,'Washer '+(i+1)+' Inlet Valve',i>=3,true,12)});
+ for(let i=5;i>0;i--){const x=100+i*140;arrow(x+20,1110,x-20,1110,'#2a8ad8',5)}LB(980,1118,'Counter-flow cascade: Washer 6 → Washer 1',22,'#fff','start');
+ pipe('M110 1260H2560','Drain to Heat Exchanger',PIPE,10,false);LB(2580,1268,'To heat exchanger',22,'#fff','start');D.wash.forEach((_,i)=>{const x=204+i*140;pipe(`M${x} 1004V1260`,null,PIPE,4,false)});
+ pump(1600,1380,'Cooling Water Pump V34',true,30);LB(1600,1330,'Cooling water V34',20);
+ panel(2000,1300,860,160,'Totals');[['Fresh water',()=>fx(D.flow.reduce((a,f)=>a+f[1],0),1)+' L/min'],['Specific',()=>'6.8 L/kg']].forEach(([l,f],i)=>{LB(2040+i*420,1400,l,24,'#fff','start');const b=box(2300+i*420,1392,200,48,TEAL,f(),'#fff',24);live(()=>b.set(f()))});
+}
+
+function params(){
+ panel(40,170,2820,890,'Compensator configuration');
+ ['Col','Disable','Speed %','Min','Current','Max'].forEach((h,i)=>{LB([110,250,430,720,880,1040][i],270,h,22);LB([1530,1670,1850,2140,2300,2460][i],270,h,22)});
+ const names=['600A1','610A1','620A1','630A1','640A1','650A1','660A1','670A1','571A1','700A1','710A1','720A1','730A1','740A1','750A1','791A1','800A1','810A1','820A1','830A1'];
+ names.forEach((n,i)=>{const L=i<12,c=L?0:1420,row=L?i:i-12,y=320+row*60;LB(110+c,y+8,String(i+1),22,'#fff');sw(250+c,y,'Compensator '+n+' Disable',false,40,36);box(380+c,y,110,40,GY,n,NV,20);box(500+c,y,100,40,GY,fx(100+jit(0,1.2),1),NV,20);LB(560+c,y+8,'%',18,'#fff','start');
+  const mn=jit(10.3,.4),mx=mn+jit(1,.3);box(720+c,y,120,40,GY,fx(mn,2),NV,20);const cur=val(880+c,y,'Compensator '+n+' Current',(mn+mx)/2,'',{fill:'#fff',col:NV,w:120,h:40,fs:20,d:2,drift:.06});box(1040+c,y,120,40,GY,fx(mx,2),NV,20);
+  const b=rc(1120+c,y-12,140,24,'#fff',{stroke:'#999'});const m=rc(1120+c,y-12,70,24,'#e04040');live(()=>m.setAttribute('width',Math.max(4,Math.min(140,140*(cur.get()-mn)/(mx-mn||1)))))});
+ panel(40,1090,920,370,'Group AB · Regulation steamer');LB(80,1190,'Regulating range',24,'#fff','start');[['Min','10.0 %'],['Current','-10 %'],['Max','10.0 %']].forEach(([h,v],i)=>{LB(420+i*140,1150,h,20);box(420+i*140,1182,120,46,i===1?'#fff':GY,v,NV,22)});
+ LB(80,1270,'Manual speed control',24,'#fff','start');sw(420,1262,'Manual Speed Control',false,46,40);box(560,1262,120,46,GY,'120.0 %',NV,22);
+ panel(980,1090,920,370,'Filter cleaning');[1,2,3].forEach(k=>{LB(1020,1150+k*70,'Filter '+k+' washer '+(k*2-1),24,'#fff','start');box(1600,1142+k*70,100,46,GY,'0s',NV,22);box(1740,1142+k*70,100,46,GY,'30s',NV,22)});LB(1600,1170,'waiting',20);LB(1740,1170,'cleaning',20);
+ panel(1920,1090,940,370,'Sensor · meter counter');[1,2,3,4].forEach(k=>{LB(1960,1140+k*66,'Meter counter '+k,24,'#fff','start');box(2400,1132+k*66,180,46,GY,'0.000 mm',NV,22)});
+}
+
+HMI({screens:[{name:'Overview',draw:overview},{name:'Dosing',draw:dosing},{name:'Temperature',draw:temperature},{name:'Water',draw:water},{name:'Parameters',draw:params}],
+ stats:[{l:'Lot',v:D.lot,fill:'#fff',col:NV,w:200,tip:()=>({t:'Lot',r:[['Lot',D.lot],['Weight',D.weight+' g/m']]})},
+ {l:'Speed',v:'0',fill:RED,w:110,live:b=>b.set(fx(D.speed,0)),tip:()=>({t:'Line Speed',r:[['Actual',fx(D.speed)+' m/min']]})},
+ {l:'Meter',v:'2478',fill:TEAL,col:'#fff',w:140,tip:()=>({t:'Meter Counter',r:[['Meter',fx(D.meter,0)+' m']]})}]});
+</script></body></html>

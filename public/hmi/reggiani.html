@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>REGGIANI Digital Printer HMI</title>
+<link rel="stylesheet" href="hmi-kit.css">
+</head><body>
+<div id="wrap"><svg id="s" viewBox="0 0 2900 1484" preserveAspectRatio="xMidYMid meet"></svg></div>
+<div id="tip"></div>
+<script src="hmi-kit.js"></script>
+<script src="hmi-fabric.js"></script>
+<script>
+const DSP='#111418',DG='#5cff5c',OUT='#d8c24a';
+const st={speed:40,run:true,metres:641,pieces:141,dir:1};
+const COL=[['Cyan','#00a6e0'],['Magenta','#e0158c'],['Yellow','#ffe600'],['Black','#222'],['Orange','#ff7a00'],['Red','#d0202a'],['Blue','#2442b8'],['Grey','#8a8a8a']];
+
+function main(){
+ alarmBar(30,140,2840,44,'342   DRYER UNDERTEMPERATURE','#ffe94a',NV);
+ // command row
+ const help=btn(110,265,160,120,'?',null,'#eef0f8','#d08a00',80);help.tip=()=>({t:'Help',r:[['Active Alarm','342 Dryer undertemperature'],['Action','Check dryer zone 1 burner']]});
+ const dir=btn(290,265,160,120,'→',()=>{st.dir*=-1;dir.set(st.dir>0?'→':'←')},'#eef0f8',PIPE,80);dir.tip=()=>({t:'Run Direction',r:[['Direction',st.dir>0?'FORWARD':'REVERSE']]});
+ btn(470,265,160,120,'−',()=>{st.speed=Math.max(0,st.speed-1)},'#eef0f8','#333',80).tip=()=>({t:'Speed Down',r:[['Step','-1 m/min']]});
+ E('rect',{x:570,y:205,width:420,height:120,fill:DSP,stroke:'#555','stroke-width':6});const sp=TX(760,300,96,'40',DG,'middle','normal');TX(960,240,26,'m/min','#fff','end');
+ tip(sp,()=>({t:'Printing Speed',r:[['Actual',fx(st.speed)+' m/min'],['Set','40 m/min'],['Range','0 - 75 m/min']]}));
+ btn(1070,265,160,120,'+',()=>{st.speed=Math.min(75,st.speed+1)},'#eef0f8','#333',80).tip=()=>({t:'Speed Up',r:[['Step','+1 m/min']]});
+ const on=btn(1290,265,200,120,'I',()=>{st.run=true},'#eef0f8','#222',70);on.tip=()=>({t:'Machine Start',r:[['State',st.run?'RUNNING':'STOPPED']]});
+ const off=btn(1510,265,200,120,'O',()=>{st.run=false},'#eef0f8','#222',70);off.tip=()=>({t:'Machine Stop',r:[['State',st.run?'RUNNING':'STOPPED']]});
+ live(()=>{const v=st.run?st.speed+jit(0,.2):0;sp.textContent=fx(v,0)});
+ // recipe & counters
+ panel(30,360,1000,130,'');btn(110,425,130,96,'▶R◀',null,'#eef0f8',PIPE,30).tip=()=>({t:'Recipe',r:[['Recipe No.','641'],['Variant','30']]});
+ E('rect',{x:200,y:382,width:520,height:86,fill:DSP});const mt=TX(700,450,64,'641',DG,'end','normal');E('rect',{x:740,y:382,width:270,height:86,fill:DSP});TX(990,450,64,'30',DG,'end','normal');
+ tip(mt,()=>({t:'Recipe / Variant',r:[['Recipe','641'],['Variant','30'],['Metres Printed',fx(st.metres,0)+' m']]}));
+ panel(1060,360,660,130,'');TX(1140,448,60,'ΣP',PIPE);E('rect',{x:1230,y:382,width:470,height:86,fill:'#fff',stroke:'#888'});const pc=TX(1465,450,60,'141','#222','middle','normal');
+ tip(pc,()=>({t:'Piece Counter',r:[['Pieces',String(st.pieces)],['Metres',fx(st.metres,0)+' m']]}));
+ live(()=>{if(!st.run)return;st.metres+=st.speed/40;if(Math.random()<.08)st.pieces++;pc.textContent=st.pieces});
+ // card panel
+ E('rect',{x:2160,y:360,width:710,height:360,rx:10,fill:'#c8cdf5',stroke:NV,'stroke-width':4});
+ btn(2250,430,140,110,'▤',null,'#eef0f8',NV,60);TX(2420,420,28,'Card in process',NV,'start','normal');const cr=rc(2420,440,430,50,RED,{class:'blink'});tip(cr,()=>({t:'Production Card',r:[['Status','IN PROCESS'],['Recipe','641 / 30'],['Pieces',String(st.pieces)]]}));
+ btn(2340,610,260,140,'New card',null,'#5a5f7a','#fff',26).tip=()=>({t:'New Card',r:[['Action','Create production card']]});
+ btn(2660,610,280,140,'Update data',null,'#5a5f7a','#fff',26).tip=()=>({t:'Update Data',r:[['Action','Sync card with MES']]});
+ // ink supply
+ panel(1060,510,1080,210,'Ink Supply');COL.forEach(([n,c],i)=>{const x=1100+i*128;const lv=rnd(35,95);bar(x,566,56,120,n+' Ink Tank',lv,{col:c,drift:.4,extra:v=>[['Volume',fx(v*.1,1)+' L'],['Head Pressure',fx(jit(-6,.4))+' mbar']]});LB(x+28,712,n,18,'#fff')});
+ // line
+ E('rect',{x:30,y:1340,width:2840,height:16,fill:'#000'});
+ // unwinder
+ E('path',{d:'M90 1340L190 1180L290 1340',fill:'none',stroke:'#444','stroke-width':10});E('circle',{cx:190,cy:1180,r:112,fill:'#2ba3d9',stroke:'#1a6a9a','stroke-width':6});rl(190,1180,18,'Unwinder Shaft','#ffffff','#1a6a9a');
+ LB(190,1040,'Unwinder',24);
+ // entry + print belt
+ E('rect',{x:370,y:880,width:760,height:440,rx:40,fill:'none',stroke:OUT,'stroke-width':6});LB(750,868,'Gluing & Print Belt',24);
+ rc(410,760,200,330,'#e9ebf8',{stroke:'#333','stroke-width':4});E('path',{d:'M430 790L590 1060',stroke:'#c0c4dc','stroke-width':3});
+ const br=G();P=br;rc(640,720,440,120,'#dfe2f2',{stroke:'#333','stroke-width':4});COL.forEach(([n,c],i)=>{const x=656+i*52;const h=E('rect',{x,y:842,width:40,height:70,fill:c,stroke:'#fff','stroke-width':2});tip(h,()=>({t:'Print Head '+(i+1)+' · '+n,r:[['Status',st.run?'JETTING':'PARKED'],['Nozzles OK',(99.2+Math.random()*.7).toFixed(1)+' %'],['Head Temp',fx(jit(42,1))+' °C'],['Firing Freq',fx(st.speed*.8)+' kHz']]}))});P=br.parentNode;
+ LB(860,705,'Print Bridge (8 colours)',22);
+ E('rect',{x:640,y:960,width:470,height:60,rx:30,fill:'#c8cce0',stroke:'#333','stroke-width':4});rl(670,990,26,'Belt Drive Roller');rl(1080,990,26,'Belt Return Roller');
+ E('path',{d:'M640 1040H1110',stroke:'#7a7f9a','stroke-width':12});[[480,1150],[560,1110],[700,1170]].forEach(([x,y],i)=>rl(x,y,22,'Adhesive Roller '+(i+1)));
+ for(let x=720;x<1080;x+=60)E('path',{d:`M${x} 1100v80`,stroke:'#555','stroke-width':6});LB(900,1230,'Belt Washer',20,'#333');
+ // dryer
+ E('rect',{x:1170,y:900,width:760,height:420,rx:40,fill:'none',stroke:OUT,'stroke-width':6});LB(1550,940,'Dryer Zones 1 - 3',22,NV);
+ const dz=[[1,170,147],[2,170,168],[3,170,171]];
+ dz.forEach(([z,sv,pv],i)=>{const x=1200+i*240;rc(x,960,200,250,'#eef0f8',{stroke:'#333','stroke-width':4});for(let k=0;k<6;k++)E('path',{d:`M${x+20+k*30} 980L${x+40+k*30} 1060`,stroke:'#555','stroke-width':4});
+  fan(x+100,1130,'Dryer Zone '+z+' Circulation Fan',true,64);
+  const pr=pvsv(x+100,785,'Dryer Zone '+z+' Temperature',sv,pv,'°C',{w:150,d:0,pull:z===1?0:.08,drift:z===1?.6:.8});LB(x+100,750,'Zone '+z,22,'#fff');
+  if(z===1)pr.pv.classList.add('blink');});
+ E('path',{d:'M1180 1270H1920',stroke:'#7a7f9a','stroke-width':10});
+ // exit plaiter
+ E('rect',{x:1980,y:960,width:520,height:360,rx:30,fill:'none',stroke:OUT,'stroke-width':6});LB(2240,948,'Exit & Plaiter',24);
+ rc(2010,1050,460,220,'#eef0f8',{stroke:'#333','stroke-width':4});E('path',{d:'M2120 1000L2200 820',stroke:'#c0c4dc','stroke-width':26});
+ [[2060,1120],[2140,1120],[2380,1100]].forEach(([x,y],i)=>rl(x,y,i===2?36:20,'Exit Roller '+(i+1)));
+ const sf=btn(2400,900,90,90,'✋',null,'#eef0f8','#333',48);sf.tip=()=>({t:'Operator Safety',r:[['Light Curtain','CLEAR'],['E-Stop','RELEASED']]});
+ const hb=btn(1990,860,96,96,'H',null,'#eef0f8',PIPE,44);hb.tip=()=>({t:'Exit Tension',r:[['Mode','AUTO'],['Load',fx(jit(18,1))+' N']]});
+ // rewinder
+ E('path',{d:'M2580 1340L2690 1180L2800 1340',fill:'none',stroke:'#444','stroke-width':10});E('circle',{cx:2690,cy:1180,r:118,fill:'#2ba3d9',stroke:'#1a6a9a','stroke-width':6});rl(2690,1180,18,'Rewinder Shaft','#ffffff','#1a6a9a');LB(2690,1040,'Rewinder',24);
+ cloth('M190 1068L420 1060L480 1128L560 1088L640 960H1110L1200 1240H1920L2060 1098L2140 1098L2380 1064L2690 1062',()=>[['Fabric','Cotton print base'],['Speed',fx(st.run?st.speed:0)+' m/min'],['Printed',fx(st.metres,0)+' m']]);
+ // status strip
+ [['Line',()=>st.run?'RUNNING':'STOPPED'],['Printed',()=>fx(st.metres,0)+' m'],['Pieces',()=>String(st.pieces)],['Dryer',()=>'UNDER TEMP']].forEach(([l,f],i)=>{const x=200+i*700;LB(x-80,1420,l,26,'#fff','end');const b=box(x+120,1412,300,52,i===3?RED:TEAL,f(),i===3?YEL:'#fff',26);b.tip=()=>({t:l,r:[['Value',f()]]});live(()=>b.set(f()))});
+}
+
+HMI({screens:[{name:'Main Page',draw:main}],stats:[
+ {l:'Speed',v:'40.0',fill:RED,live:b=>b.set(fx(st.run?st.speed:0)),tip:()=>({t:'Printing Speed',r:[['Actual',fx(st.run?st.speed:0)+' m/min']]})},
+ {l:'Recipe',v:'641',fill:TEAL,col:'#fff',tip:()=>({t:'Recipe',r:[['Recipe','641 / 30']]})}]});
+</script></body></html>

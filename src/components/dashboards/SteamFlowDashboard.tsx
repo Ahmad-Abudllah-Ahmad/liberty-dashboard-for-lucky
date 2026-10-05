@@ -8,7 +8,7 @@ export const SteamFlowDashboard: React.FC = () => {
       <div className="content-header-row">
         <div>
           <h2>Steam Flow & Thermal Energy Distribution</h2>
-          <p className="content-subtitle">Liberty Mills Limited • Central Steam Headers, Boilers & Process Lines</p>
+          <p className="content-subtitle">Lucky Textile • Central Steam Headers, Boilers & Process Lines</p>
         </div>
         <div className="header-actions-group">
           <span className="badge-tag green">STEAM BALANCE: BALANCED (±0.4%)</span>

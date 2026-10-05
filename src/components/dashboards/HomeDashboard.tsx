@@ -24,7 +24,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
       <div className="home-top-toolbar">
         <div className="plant-quick-badge">
           <span className="live-pulse"></span>
-          <span className="plant-name-badge">LIBERTY MILLS LIMITED</span>
+          <span className="plant-name-badge">LUCKY TEXTILE</span>
           <span className="plant-tagline">Central SCADA & Industrial Monitoring Portal</span>
           <span className="plant-status-pill">SYS OPERATIONAL 100%</span>
         </div>
@@ -52,8 +52,8 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
             <div className="clean-card-title">
               <span className="clean-card-icon">⚡</span>
               <div>
-                <h2>Liberty Mills Operations Center</h2>
-                <p>Welcome to Liberty Mills Industrial Telemetry & Energy Management System</p>
+                <h2>Lucky Textile Operations Center</h2>
+                <p>Welcome to Lucky Textile Industrial Telemetry & Energy Management System</p>
               </div>
             </div>
             <div className="clean-card-actions">

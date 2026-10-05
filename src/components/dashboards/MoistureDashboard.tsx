@@ -50,7 +50,7 @@ export const MoistureDashboard: React.FC = () => {
       <div className="content-header-row">
         <div>
           <h2>Fabric Moisture Telemetry & Stenter Regulation</h2>
-          <p className="content-subtitle">Liberty Mills Limited • Online Mahlo Radiometric Fabric Moisture Control</p>
+          <p className="content-subtitle">Lucky Textile • Online Mahlo Radiometric Fabric Moisture Control</p>
         </div>
         <div className="header-actions-group">
           <div className="btn-group-pill">
@@ -154,7 +154,7 @@ export const MoistureDashboard: React.FC = () => {
                   className="ch-bar-fill"
                   style={{
                     height: `${(temp / 200) * 100}%`,
-                    backgroundColor: temp > 180 ? '#ef4444' : temp > 170 ? '#f59e0b' : '#3b82f6',
+                    backgroundColor: temp > 180 ? '#ef4444' : temp > 170 ? '#f59e0b' : '#3a42a8',
                   }}
                 ></div>
               </div>

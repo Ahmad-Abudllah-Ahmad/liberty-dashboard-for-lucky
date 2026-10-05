@@ -7,27 +7,27 @@
 
 :root {
   /* Brand & Industrial Colors */
-  --sidebar-bg: #2d353c;
-  --sidebar-header: #242a30;
-  --sidebar-submenu-bg: #21262d;
-  --sidebar-text: #b5b5c3;
-  --sidebar-text-hover: #ffffff;
-  --sidebar-active-bg: #1e2327;
-  --sidebar-border: #38414a;
+  --sidebar-bg: #283090;
+  --sidebar-header: #283090;
+  --sidebar-submenu-bg: #283090;
+  --sidebar-text: #f4f5fc;
+  --sidebar-text-hover: #0f172a;
+  --sidebar-active-bg: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.12);
 
   --header-bg: #ffffff;
-  --header-height: 50px;
+  --header-height: 84px;
   --header-border: #e9ecef;
-  --header-icon-color: #6c757d;
+  --header-icon-color: #3a42a8;
 
-  --main-bg: #f4f6f9;
+  --main-bg: #f3f4fa;
   --card-bg: #ffffff;
   --card-border: #e2e8f0;
 
   --badge-yellow: #f59e0b;
   --badge-red: #ef4444;
   --badge-green: #10b981;
-  --badge-blue: #3b82f6;
+  --badge-blue: #3a42a8;
   --badge-purple: #8b5cf6;
 
   --text-dark: #1e293b;
@@ -111,6 +111,6 @@ button {
 .text-green { color: #10b981; }
 .text-red { color: #ef4444; }
 .text-yellow { color: #f59e0b; }
-.text-blue { color: #3b82f6; }
+.text-blue { color: #3a42a8; }
 .text-purple { color: #8b5cf6; }
 .text-muted { color: #94a3b8; }

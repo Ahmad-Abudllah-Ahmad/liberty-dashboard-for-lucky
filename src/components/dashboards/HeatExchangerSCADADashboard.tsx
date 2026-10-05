@@ -26,7 +26,7 @@ export const HeatExchangerSCADADashboard: React.FC = () => {
       <div className="content-header-row">
         <div>
           <h2>Heat Exchanger Monitoring &amp; Thermal Energy Recovery</h2>
-          <p className="content-subtitle">Liberty Mills Limited • Central Plate Heat Exchanger Telemetry (10.252.1.247:8018/heatexchanger)</p>
+          <p className="content-subtitle">Lucky Textile • Central Plate Heat Exchanger Telemetry (10.252.1.247:8018/heatexchanger)</p>
         </div>
         <div className="header-actions-group">
           <div className="btn-group-pill">

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SCADA Main Screen</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#0b0d1a;--panel:#8e90dc;--ink:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b0d1a}}
+:root[data-theme="dark"]{--bg:#0b0d1a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#8e90dc;font-family:Tahoma,Verdana,"Segoe UI",sans-serif}
+#wrap{width:100%;height:100%;overflow:hidden}
+svg{width:100%;height:100%;min-width:0;display:block}
+svg text{font-family:Tahoma,Verdana,sans-serif;user-select:none}
+.rot:hover circle:first-child{stroke:#ffe94a}.c{cursor:pointer}.c:hover{filter:brightness(1.25)}
+#tip{position:fixed;pointer-events:none;background:#0f1330;color:#fff;border:1px solid #6f78ff;border-radius:6px;padding:8px 10px;font-size:12px;min-width:170px;display:none;z-index:9;box-shadow:0 4px 14px #0008}
+#tip b{display:block;margin-bottom:4px;color:#ffe94a;font-size:13px}
+#tip div{display:flex;justify-content:space-between;gap:16px}#tip span{color:#9fb0ff}
+</style></head><body>
+<div id="wrap"><svg id="s" viewBox="0 0 2900 1484" preserveAspectRatio="xMidYMid meet"></svg></div>
+<div id="tip"></div>
+<script>
+const NS="http://www.w3.org/2000/svg",S=document.getElementById('s'),tipEl=document.getElementById('tip');
+const E=(t,a,p=S)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e};
+const TX=(x,y,s,t,f='#fff',an='middle',w='bold')=>{const e=E('text',{x,y,'font-size':s,fill:f,'text-anchor':an,'font-weight':w});e.textContent=t;return e};
+const RED='#b0301c',TEAL='#1f7c8a',YEL='#ffe94a',GRN='#2e8b2e',LG='#5cf03c';
+const upd=[];
+function tip(e,fn){e.tip=fn;return e}
+function box(x,y,w,h,fill,txt,col=YEL,fs=34){const g=E('g',{});E('rect',{x:x-w/2,y:y-h/2,width:w,height:h,fill,stroke:'#fff','stroke-opacity':.7,'stroke-width':2},g);const t=TX(x,y+fs*.35,fs,txt,col,'middle','bold');g.appendChild(t);g.set=(v,f,c)=>{t.textContent=v;if(f)g.firstChild.setAttribute('fill',f);if(c)t.setAttribute('fill',c)};return g}
+function sel(x,y,opts,i=0,w=90){const g=box(x,y,w,40,'#fff',opts[i]+' ▾','#333',24);g.classList.add('c');g.addEventListener('click',()=>{i=(i+1)%opts.length;g.set(opts[i]+' ▾')});g.tip=()=>({t:'Mode Selector',r:[['Selected',opts[i]],['Options',opts.join(' / ')],['Action','Click to change']]});return g}
+const rnd=(a,b)=>Math.round(a+Math.random()*(b-a));
+// background / header
+E('rect',{width:2900,height:1484,fill:'#8e90dc'});
+E('rect',{width:2900,height:170,fill:'#1c2a8a'});
+E('rect',{width:2900,height:6,y:164,fill:'#3b4bff'});
+E('rect',{x:860,y:78,width:740,height:75,fill:'#1c2a8a',stroke:'#fff','stroke-width':3});
+const clk=TX(1230,132,40,'');
+const h1=box(2195,138,115,60,RED,'50.0',YEL,44),h2=box(2335,138,115,60,TEAL,'20.0','#fff',44);
+tip(h1,()=>({t:'Line Speed',r:[['Actual','50.0 m/min'],['Unit','m/min']]}));tip(h2,()=>({t:'Fabric Length Counter',r:[['Value','20.0'],['Unit','m']]}));
+setInterval(()=>{clk.textContent=new Date().toLocaleString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric',hour:'numeric',minute:'2-digit',second:'2-digit'}).replace(' at ',' ')},1000);
+// left panel
+const L=[['Temp AMO',185,['Man','Aut']],['Screw Roll AMO',243,['Off','On']]];
+L.forEach(([n,y,o])=>{TX(42,y+10,28,n,'#fff','start','normal');sel(305,y,o)});
+TX(42,320,28,'All Drain','#fff','start','normal');TX(40,450,28,'Inspection Table','#fff','start','normal');TX(40,484,28,'Lighting On Off','#fff','start','normal');TX(40,392,28,'Lighting On Off','#fff','start','normal');
+function toggle(x,y,name,on0=false,icon){const g=box(x,y,62,62,on0?GRN:RED,on0?'1':'0','#fff',34);g.classList.add('c');let on=on0;g.addEventListener('click',()=>{on=!on;g.set(on?'1':'0',on?GRN:RED)});g.tip=()=>({t:name,r:[['State',on?'ON':'OFF'],['Action','Click to toggle']]});return g}
+toggle(410,248,'Screw Roll Drive');toggle(410,320,'All Drain Valve');toggle(410,390,'Main Lighting');toggle(410,463,'Inspection Table Lighting');
+// motors
+function motor(x,y,n,on=true){const g=E('g',{class:'c'});const a=E('rect',{x:x-31,y:y-18,width:62,height:34,fill:LG,stroke:'#fff'},g);g.appendChild(TX(x,y+9,22,n,'#0a4a0a'));const b=E('rect',{x:x-31,y:y+28,width:62,height:34,fill:GRN,stroke:'#fff'},g);const t=TX(x,y+54,26,'1','#fff');g.appendChild(t);
+const spd=rnd(900,1450),cur=rnd(8,22);let I=cur;
+const draw=()=>{b.setAttribute('fill',on?GRN:RED);a.setAttribute('fill',on?LG:'#c9c9c9');t.textContent=on?'1':'0'};
+g.addEventListener('click',()=>{on=!on;draw()});g.tip=()=>({t:'Motor '+n,r:[['Status',on?'RUNNING':'STOPPED'],['Speed',on?spd+' rpm':'0 rpm'],['Current',on?I.toFixed(1)+' A':'0.0 A'],['Voltage',on?'415 V':'0 V'],['Power',on?(I*.72).toFixed(1)+' kW':'0.0 kW'],['Winding Temp',on?(48+spd%20)+' °C':'Ambient'],['Run Hours',(1500+spd*3)+' h'],['Action','Click to start/stop']]});upd.push(()=>{I=cur+Math.random()*1.2-.6});draw()}
+[[405,'M37'],[478,'M36'],[550,'M35'],[622,'M34'],[724,'M32'],[825,'M30'],[938,'M28'],[1052,'M26'],[1155,'M24'],[1262,'M22'],[1378,'M20'],[1482,'M18'],[1572,'M16']].forEach(m=>motor(m[0],548,m[1]));
+[[665,'M33'],[765,'M31'],[880,'M29'],[995,'M27'],[1093,'M25'],[1192,'M23'],[1305,'M21'],[1415,'M19'],[1516,'M17']].forEach(m=>motor(m[0],668,m[1]));
+[[1603,'M15'],[1668,'M14'],[1730,'M13'],[1795,'M12'],[1858,'M11'],[1923,'M10'],[1992,'M8'],[2058,'M7'],[2128,'M6'],[2198,'M5'],[2268,'M4']].forEach(m=>motor(m[0],685,m[1]));
+motor(107,848-12,'M41',false);motor(255,848-12,'M40');
+// fan boxes
+function fan(x,y,on,name){const g=box(x,y,60,60,on?'#1f6b2a':RED,'','#fff');g.classList.add('c');const c=E('circle',{cx:x,cy:y,r:18,fill:'none',stroke:'#fff','stroke-width':4},g);const r=E('path',{d:`M${x-20} ${y}H${x+20}M${x} ${y-20}V${y+20}`,stroke:'#fff','stroke-width':4,class:on?'rot':''},g);let o=on;g.addEventListener('click',()=>{o=!o;g.firstChild.setAttribute('fill',o?'#1f6b2a':RED);r.classList.toggle('rot',o)});g.tip=()=>({t:name,r:[['State',o?'RUNNING':'STOPPED'],['Action','Click to toggle']]})}
+[615,698,812,927,1027,1140,1253,1352,1454,1573].forEach((x,i)=>{fan(x,422,true,'Exhaust Fan '+(i+1));if(i<9){const g=box(i<1?698:x,497,60,60,RED,'≡','#fff',40);tip(g,()=>({t:'Heater Zone '+(i+1),r:[['State','OFF'],['Output','0 %']]}))}});
+// process line: detailed sections (inlet, coils, washing, cylinders, winder)
+const st=document.createElement('style');st.textContent='@keyframes spin{to{transform:rotate(360deg)}}@keyframes fl{to{stroke-dashoffset:-24}}.rot{transform-box:fill-box;transform-origin:center;animation:spin 1.6s linear infinite}.cloth{animation:fl .7s linear infinite}';document.head.appendChild(st);
+const NV='#1c2a8a',CR='#ff3b4a',G=(t)=>E('g',{transform:t});
+E('rect',{x:30,y:797,width:2400,height:18,fill:'#000'});
+function rl(p,x,y,r,n,f='#3a0f2a'){const g=E('g',{class:'rot'},p);E('circle',{cx:x,cy:y,r,fill:f,stroke:CR,'stroke-width':r*.45},g);E('circle',{cx:x+r*.5,cy:y,r:r*.22,fill:CR},g);tip(g,()=>{const h=Math.abs([...n].reduce((a,c)=>a*31+c.charCodeAt(0)|0,7)),w=Math.sin(Date.now()/1500+h),cyl=/Cylinder/.test(n),ty=cyl?'Drying Cylinder':/Rotor/.test(n)?'Wash Tank Rotor':/Squeeze/.test(n)?'Squeeze Roll':'Guide Roller',rpm=(cyl?14:22)+h%6+w*.3,tp=cyl?100+h%25+w*1.5:null;return{t:n,r:[['Type',ty],['Status','ROTATING'],['Speed',rpm.toFixed(1)+' rpm'],['Fabric Speed','50.0 m/min'],...(cyl?[['Surface Temp',tp.toFixed(0)+' °C']]:[]),['Drive Load',(38+h%30+w*2).toFixed(0)+' %'],['Bearing Temp',(41+h%12+w*.5).toFixed(1)+' °C'],['Vibration',(1.1+(h%9)/10+w*.05).toFixed(2)+' mm/s'],['Run Hours',(2000+h%9000)+' h']]}});return g}
+function cloth(p,d){E('path',{d,fill:'none',stroke:CR,'stroke-width':3,'stroke-linejoin':'round','vector-effect':'non-scaling-stroke'},p);const c=E('path',{d,fill:'none',stroke:'#fff','stroke-width':1.6,'stroke-dasharray':'6 6','stroke-linejoin':'round','vector-effect':'non-scaling-stroke',class:'cloth'},p);tip(c,()=>({t:'Fabric Path',r:[['Flow','Inlet to Exit Winder'],['Line Speed','50.0 m/min'],['Status','RUNNING']]}))}
+const rc=(p,x,y,w,h,f=NV)=>E('rect',{x,y,width:w,height:h,fill:f},p);
+// 1. inlet scray
+let g=G('translate(15.3,588.3) scale(.235)');
+[[165,365,1540,40],[585,255,35,650],[840,410,40,495],[1190,160,50,745],[1700,220,40,685],[585,255,330,30],[890,255,25,135],[1190,160,100,30],[1640,290,100,40],[1700,220,100,22],[1360,770,30,135],[410,685,180,25],[870,685,180,25]].forEach(r=>rc(g,...r));
+[[220,370,110,490],[220,370,340,490],[220,370,225,540]].forEach(l=>E('path',{d:`M${l[0]} ${l[1]}L${l[2]} ${l[3]}`,stroke:NV,'stroke-width':28},g));
+E('path',{d:'M1230 205L1400 320M1580 455L1500 780M1690 460L1600 810Q1560 890 1440 885Q1390 880 1370 830',fill:'none',stroke:NV,'stroke-width':16},g);
+[425,1033].forEach(x=>{E('circle',{cx:x,cy:790,r:75,fill:'#f0642a'},g);E('path',{d:`M${x-75} 895L${x} 800L${x+75} 895Z`,fill:'#e6e8ff',stroke:'#000','stroke-width':14},g)});
+cloth(g,'M225 655V400L335 408L500 425L580 550L570 765L635 795L660 815L670 240L775 240L890 240L1085 375L1175 545L1170 800L1235 870L1250 140L1400 320L1365 350L1420 380L1445 375L1505 785L1650 320L1778 205L1830 270');
+[[335,408],[500,425],[578,550],[575,765],[635,795],[660,815],[680,240],[775,240],[888,243],[925,430],[1030,430],[1080,375],[1175,545],[1235,870],[1263,145],[1405,320],[1365,350],[1505,785],[1778,205],[1670,320],[1680,362]].forEach((c,i)=>rl(g,c[0],c[1],20,'Inlet Roller '+(i+1)));
+[65,140].forEach((x,i)=>{const n='M'+(39-i);tip(box(x,540,62,34,'#c9c9d4',n,'#999',22),()=>({t:'Motor '+n,r:[['Status','STANDBY']]}));tip(box(x,590,62,34,RED,'0','#fff',24),()=>({t:'Motor '+n,r:[['State','STOPPED']]}))});
+// 2. dry cylinder (coil columns)
+g=G('translate(341.4,570.2) scale(.217,.203)');
+[[533,255,612,35],[533,255,37,875],[695,255,35,875],[940,255,35,875],[1110,255,35,875],[765,290,16,110]].forEach(r=>rc(g,...r));
+const CY=[[660,[440,550,655,765,870,980]],[755,[485,595,700,810,920,1025]],[910,[490,600,705,815,925,1030]],[1000,[440,545,650,760,865,975]]];
+let cn=0;CY.forEach(c=>c[1].forEach(y=>rl(g,c[0],y,46,'Dry Cylinder '+(++cn),'#111')));
+let d='M507 765V940L585 948L600 1035L720 1060';for(let i=5;i>=0;i--)d+=`L805 ${CY[1][1][i]}L612 ${CY[0][1][i]}`;
+d+='L780 305L860 295L828 372';for(let i=0;i<6;i++)d+=`L1048 ${CY[3][1][i]}L862 ${CY[2][1][i]}`;d+='L1075 1035L1095 895L1182 960L1245 885';
+cloth(g,d);[[780,305],[860,295],[828,372],[520,945],[582,948],[600,1035],[1095,895],[1075,1035],[1182,960]].forEach((c,i)=>rl(g,c[0],c[1],20,'Guide Roller '+(i+1)));
+// 3. washing units
+g=G('translate(610,742) scale(.366)');d='M0 72';
+for(let i=0;i<9;i++){const o=i*295;rc(g,o,5,30,150);rc(g,o-6,3,42,12);rc(g,o+55,125,28,50,'#a3a5e6');E('rect',{x:o+50,y:18,width:175,height:107,fill:'#c6c8f0',stroke:'#fff'},g);rc(g,o+95,55,90,38,'#fff');
+ d+=` L${o+15} 70`;for(let k=0;k<13;k++)d+=` L${o+62+k*152/12} ${k%2?28:112}`;d+=` L${o+238} 92 L${o+266} 88 L${o+295} 72`}
+rc(g,2655,5,30,150);cloth(g,d);
+for(let i=0;i<9;i++){const o=i*295,n='Wash Unit '+(i+1);rl(g,o+15,70,9,n+' Entry Roller');for(let k=0;k<13;k++)rl(g,o+62+k*152/12,k%2?28:112,k%2?6:7,n+' Rotor '+(k+1)+' of 13');rl(g,o+238,92,9,n+' Dip Roller');rl(g,o+266,88,9,n+' Dip Roller')}
+// 4. cylinder section (1st stabilisation)
+g=G('translate(1555.6,554) scale(.36)');
+[[45,555,380],[430,555,365],[800,555,360],[1165,555,350],[1520,555,350],[1875,555,350]].forEach(c=>E('rect',{x:c[0],y:c[1],width:c[2],height:140,fill:'#d8d8f5',stroke:'#666','stroke-width':3},g));
+[[8,535,37,260],[415,700,30,90],[785,700,30,90],[1150,700,26,90],[1505,700,26,90],[1860,700,26,90],[2225,515,95,260]].forEach(r=>rc(g,...r));
+E('circle',{cx:2272,cy:495,r:28,fill:NV},g);
+d='M45 575L70 640';const pts=[],bx=[[45,425],[430,795],[800,1160],[1165,1515],[1520,1870],[1875,2225]];
+bx.forEach((c,ci)=>{const st=(c[1]-c[0]-60)/12;for(let j=0;j<13;j++)pts.push([c[0]+30+j*st,j%2?608:655,ci,j])});
+pts.forEach(q=>d+=`L${q[0]} ${q[1]+(q[1]==608?-26:26)}`);d+='L2200 585L2325 550L2395 692L2408 600';
+cloth(g,d);pts.forEach(q=>rl(g,q[0],q[1],21,'Dryer Compartment '+(q[2]+1)+' Rotor '+(q[3]+1)+' of 13','#111'));
+E('path',{d:'M2380 560H2432L2406 605Z',fill:CR},g);
+// link segments between sections
+E('path',{d:'M445 652L451 725M612 750L610 768M1582 768L1572 761M2418 803',fill:'none',stroke:CR,'stroke-width':3});
+// 5. exit winder (own view, drawn right of the main screen)
+g=G('translate(2900,300) scale(.5)');
+[[555,380,195,25],[585,380,55,800],[1095,380,40,800],[640,570,715,35],[1030,460,100,110],[780,530,30,45],[1235,530,30,45],[715,1030,35,150],[580,1085,70,95]].forEach(r=>rc(g,...r));
+rc(g,500,1180,860,50,'#000');
+E('path',{d:'M960 645L890 1010M1080 650L1000 1080Q960 1165 840 1150Q760 1130 750 1050',fill:'none',stroke:NV,'stroke-width':16},g);
+cloth(g,'M660 365V1080M672 360L785 530L895 1020L1040 480L1075 540L1180 365L1245 540L1310 550V850');cloth(g,'M528 1030V1085');
+[[595,362],[672,362],[731,355],[1050,490],[1075,540],[1180,365],[1305,550],[895,1022],[540,1025],[575,1050],[652,1065]].forEach((c,i)=>rl(g,c[0],c[1],20,'Winder Roller '+(i+1)));
+motor(3427,392,'M1');tip(box(3270,759,80,50,RED,181,YEL,32),()=>({t:'Drum Dryer DR #1',r:[['Speed','181 %'],['Status','RUNNING']]}));TX(3262,722,22,'DR # 1','#b0301c');
+toggle(3497,772,'Winder Drive');toggle(3497,832,'Winder Brush');
+// washing view (own screen, matches the Washing close-up)
+{const P=x=>5000+x*.6,Q=y=>y*.6,IN='#2a2a8a',pos=(v)=>(v>=0?'+':'')+v.toFixed(1);
+const lab=(x,y,t,a='middle',f='#fff')=>TX(P(x),Q(y),18,t,f,a,'normal');
+E('rect',{x:P(-60),y:0,width:1572,height:933,fill:'#8e90dc'});
+[[233,.6],[845,0],[1440,0],[1970,0]].forEach(([x0,v0],gi)=>{let v=v0;const bx=[0,57,139,217,272].map(d=>x0+d),val=box(P(bx[2]),Q(35),54,28,TEAL,pos(v),'#fff',20);
+ const upd2=()=>val.set(pos(v));tip(val,()=>({t:'Zone '+(gi+1)+' Trim',r:[['Offset',pos(v)]]}));
+ [['--',-.5,0],['-',-.1,1],['+',.1,3],['++',.5,4]].forEach(([l,dv,i])=>{const b=box(P(bx[i]),Q(35),30,28,'#c9c9e8',l,'#444',18);b.classList.add('c');b.addEventListener('click',()=>{v=Math.round((v+dv)*10)/10;upd2()});tip(b,()=>({t:'Zone '+(gi+1)+' Trim',r:[['Offset',pos(v)],['Step',(dv>0?'+':'')+dv],['Action','Click to adjust']]}))})});
+[[55,54,32],[360,59,30],[665,55,28],[965,62,26],[1260,62,24],[1555,62,22],[1848,61,20],[2140,56,18],[2420,64,16]].forEach(([x,v,n])=>{TX(P(x-10),Q(115),20,'DR # '+n,IN,'middle','normal');const b=box(P(x),Q(170),54,36,RED,v,YEL,24);lab(x+75,182,'%','middle',IN);b.classList.add('c');let t=v;b.tip=()=>({t:'Drum Dryer DR #'+n,r:[['Speed',t+' %'],['Status','RUNNING'],['Mode','Auto']]});upd.push(()=>{t=v+rnd(-1,1);b.set(t)})});
+[[205,'M32'],[508,'M30'],[810,'M28'],[1108,'M26'],[1397,'M24'],[1693,'M22'],[1982,'M20'],[2275,'M18']].forEach(m=>motor(P(m[0]),Q(155),m[1]));
+[[45,'M33'],[322,'M31'],[627,'M29'],[930,'M27'],[1230,'M25'],[1506,'M23'],[1816,'M21'],[2105,'M19'],[2373,'M17']].forEach(m=>motor(P(m[0]),Q(320),m[1]));
+[205,508,810,1108,1397,1693,1982,2272].forEach((x,i)=>{const X=P(x),Y=Q(315),g=E('g',{class:'c'});E('rect',{x:X-25,y:Y-24,width:50,height:48,fill:'#1f6b2a',stroke:'#fff'},g);const rs=[-11,11].map(dy=>{const r=E('g',{class:'rot'},g);E('circle',{cx:X-9,cy:Y+dy,r:8,fill:'none',stroke:'#fff','stroke-width':2.5},r);E('path',{d:`M${X-17} ${Y+dy}H${X-1}M${X-9} ${Y+dy-8}V${Y+dy+8}`,stroke:'#fff','stroke-width':1.5},r);return r});E('path',{d:`M${X+12} ${Y-14}V${Y+14}M${X+7} ${Y+8}L${X+12} ${Y+15}L${X+17} ${Y+8}`,stroke:'#fff','stroke-width':2.5,fill:'none'},g);let o=true;g.addEventListener('click',()=>{o=!o;rs.forEach(r=>r.classList.toggle('rot',o))});g.tip=()=>({t:'Padder Squeeze Rolls '+(i+1),r:[['State',o?'RUNNING':'STOPPED'],['Action','Click to toggle']]});
+ const hy=Q(405),h=E('g',{class:'c'});const hr=E('rect',{x:X-25,y:hy-24,width:50,height:48,fill:RED,stroke:'#fff'},h);E('path',{d:`M${X-18} ${hy-14}H${X+18}M${X-18} ${hy-7}H${X+18}M${X-18} ${hy+1}l4 5l4-5l4 5l4-5l4 5l4-5l4 5l4-5l4 5M${X-18} ${hy+13}H${X+18}`,stroke:'#222','stroke-width':2,fill:'none'},h);let on=false;h.addEventListener('click',()=>{on=!on;hr.setAttribute('fill',on?'#ff9a2a':RED)});h.tip=()=>({t:'Heater Zone '+(i+1),r:[['State',on?'ON':'OFF'],['Action','Click to toggle']]})});
+E('rect',{x:P(-60),y:Q(640),width:1572,height:Q(26),fill:'#000'});
+const po=[-95,205,510,808,1105,1398,1690,1982,2272,2562];
+for(let k=0;k<9;k++){const sx=(po[k+1]-po[k])/295,g=E('g',{transform:`translate(${P(po[k]-15)},${Q(465)}) scale(${.6*sx},.6)`});let d='M0 72';
+ rc(g,0,5,30,150);rc(g,-6,3,42,12);rc(g,-45,80,28,95,'#a3a5e6');E('rect',{x:50,y:18,width:175,height:107,fill:'#c6c8f0',stroke:'#fff'},g);rc(g,-80,25,50,18,'#e6e8ff');
+ E('rect',{x:60,y:38,width:156,height:62,rx:10,fill:'#fff','fill-opacity':.85},g);
+ d+=' L15 70';for(let j=0;j<13;j++)d+=` L${62+j*152/12} ${j%2?28:112}`;d+=' L238 92 L266 88 L295 72';cloth(g,d);
+ const n='Wash Unit '+(k+1);rl(g,15,70,9,n+' Entry Roller');for(let j=0;j<13;j++)rl(g,62+j*152/12,j%2?28:112,j%2?6:7,n+' Rotor '+(j+1)+' of 13');rl(g,238,92,9,n+' Dip Roller');rl(g,266,88,9,n+' Dip Roller')}
+[45,335,640,932,1228,1520,1810,2098,2368].forEach((x,i)=>{const pv0=79,sv=80;if(i){lab(x-100,712,'PV','end');lab(x-100,760,'SV','end')}lab(x+90,712,'°C','start');lab(x+90,760,'°C','start');
+ const p=box(P(x),Q(700),70,31,LG,pv0,'#0a4a0a',22),sb=box(P(x),Q(748),70,31,TEAL,sv,'#fff',22);let t=pv0;const f=()=>({t:'Wash Zone '+(i+1)+' Temperature',r:[['PV',t+' °C'],['SV',sv+' °C'],['Mode','Manual'],['Status',Math.abs(t-sv)<=2?'IN RANGE':'ALARM']]});p.tip=f;sb.tip=f;upd.push(()=>{t=pv0+rnd(-1,1)*(Math.random()<.3?1:0);p.set(t)});
+ sel(P(x),Q(810),['Manu','Aut'],0,68);
+ const iv=box(P(x-30),Q(880),38,42,'#1f9a8a','⇄','#fff',24);iv.tip=()=>({t:'Circulation Pump '+(i+1),r:[['State','RUNNING'],['Flow','Normal']]});iv.classList.add('c');
+ const vx=P(x+48),vy=Q(880),vg=E('g',{class:'c'});E('rect',{x:vx-19,y:vy-21,width:38,height:42,fill:'#e8e8ff',stroke:'#fff'},vg);const hg=E('path',{d:`M${vx-9} ${vy-12}H${vx+9}L${vx-9} ${vy+12}H${vx+9}Z`,fill:i?RED:'#1fa05a'},vg);let vo=!i;vg.addEventListener('click',()=>{vo=!vo;hg.setAttribute('fill',vo?'#1fa05a':RED)});vg.tip=()=>({t:'Steam Valve '+(i+1),r:[['Position',vo?'OPEN':'CLOSED'],['Action','Click to toggle']]})});
+const tg=(x,y,n,on)=>{const b=box(P(x),Q(y),40,40,on?LG:RED,on?'1':'0',on?'#0a4a0a':'#fff',24);b.classList.add('c');let o=on;b.addEventListener('click',()=>{o=!o;b.set(o?'1':'0',o?LG:RED,o?'#0a4a0a':'#fff')});b.tip=()=>({t:n,r:[['State',o?'ON':'OFF'],['Action','Click to toggle']]})};
+const ll=(x,y)=>tip(box(P(x),Q(y),76,30,'#e8352b','Low Level','#fff',16),()=>({t:'Level Switch',r:[['Alarm','LOW LEVEL']]}));
+[340,2378].forEach((x,i)=>{lab(x,1018,'FIL');tg(x,i?1078:1075,'Filter '+(i+1),!i);ll(x,i?1155:1150)});sel(P(340),Q(965),['Aut','Man'],0,60);sel(P(2378),Q(972),['Off','On'],0,60);
+[[45,[[6.0,'L/Kg',1035,TEAL,'SV'],[5.5,'L/Min',1095,RED,'SV + GLM'],[3.5,'L/Min',1155,RED,'Act Flow'],[100.0,'%',1215,TEAL,'Man SV']]],[640,[[2.0,'L/Kg',1028,TEAL,'SV'],[31.0,'L/Min',1088,RED,'SV + GLM'],[5.6,'L/Min',1148,RED,'Act Flow'],[100.0,'%',1210,TEAL,'Man SV']]],[1430,[[3.0,'L/Kg',1022,TEAL,'SV'],[46.5,'L/Min',1080,RED,'SV + GLM'],[46.0,'L/Min',1140,RED,'Act Flow'],[100.0,'%',1198,TEAL,'Man SV']]]].forEach(([x,rows])=>{sel(P(x),Q(rows[0][2]-62),['Aut','Man'],0,60);rows.forEach(([v,u,y,c,n])=>{lab(x-55,y+8,n,'end');const b=box(P(x),Q(y),52,30,c,v.toFixed(1),c==RED?YEL:'#fff',20);lab(x+45,y+8,u,'start');b.tip=()=>({t:'Wash Flow',r:[[n,v.toFixed(1)+' '+u],['Mode','Auto']]})})});
+sel(P(1675),Q(1022),['Off','On'],0,60);lab(1675,1085,'Heat Exchanger');tg(1677,1145,'Heat Exchanger',false);}
+// dry cylinder view (own screen, matches the Dry Cylinder close-up)
+{const P=x=>7000+x*.45,Q=y=>y*.45,IN='#2a2a8a';
+E('rect',{x:6863,y:0,width:1045,height:620,fill:'#8e90dc'});
+const g=G('translate(7000,0) scale(.45)');rc(g,495,1130,750,77,'#000');
+const LA=[440,545,650,760,870,980],LB=[485,595,700,810,920,1025],RC=[490,600,705,815,925,1030],RD=[440,545,650,760,865,975];
+let n=0;[[660,LA,1],[755,LB,0],[910,RC,0],[1000,RD,1]].forEach(([x,ys,rv])=>ys.forEach(y=>{const r=rl(g,x,y,46,'Dry Cylinder '+(++n),'#111');if(rv)r.style.animationDirection='reverse';E('circle',{cx:x,cy:y,r:58,fill:'none',stroke:'#fff','stroke-width':1.6,'stroke-dasharray':'6 6','vector-effect':'non-scaling-stroke',class:'cloth',style:rv?'animation-direction:reverse':''},g)}));
+let d='M1245 885L1182 960L1150 948L1098 895L1088 1000L1075 1035L1000 1070L910 1085';
+for(let i=5;i>=0;i--)d+=` L856 ${RC[i]} L1054 ${RD[i]}`;d+=' L1000 392L860 293L783 305L660 390';
+for(let i=0;i<6;i++)d+=` L606 ${LA[i]} L809 ${LB[i]}`;d+=' L755 1078L600 1040L588 852L520 945L507 940L507 770';
+cloth(g,d);
+[[533,255,37,875],[695,255,35,875],[940,255,35,875],[1110,255,35,875],[533,255,612,35],[570,1050,130,10],[975,1050,135,10],[762,290,13,115],[775,368,55,12]].forEach(r=>rc(g,...r));
+[533,695,940,1110].forEach(x=>rc(g,x-14,1105,65,26));
+[[783,305],[858,295],[828,372],[520,945],[582,945],[600,1035],[588,852],[1095,897],[1075,1035],[1182,960]].forEach((c,i)=>rl(g,c[0],c[1],20,'Guide Roller '+(i+1)));
+E('path',{d:'M490 862L507 832L524 862Z',fill:CR},g);E('path',{d:'M-15 -20L0 16L15 -20Z',fill:CR,transform:'translate(1235,905) rotate(35)'},g);
+[[413,690,65,37],[1250,690,58,35],[857,1298,62,36]].forEach(([x,y,v,k])=>{TX(P(x),Q(y-73),20,'DR # '+k,IN,'middle','normal');const b=box(P(x),Q(y),46,32,RED,v,YEL,22);TX(P(x+80),Q(y+10),18,'%',IN,'middle','normal');b.classList.add('c');let t=v;b.tip=()=>({t:'Drum Dryer DR #'+k,r:[['Speed',t+' %'],['Status','RUNNING'],['Mode','Auto']]});upd.push(()=>{t=v+rnd(-1,1);b.set(t)})});
+motor(P(668),Q(55),'M36');motor(P(978),Q(55),'M35');}
+// winder ending (right end of the line)
+{S.setAttribute('viewBox','0 0 2900 1484');
+E('rect',{x:2430,y:797,width:215,height:18,fill:'#000'});
+const g=G('translate(2322,520) scale(.235)');
+[[555,380,195,25],[585,380,55,800],[1095,380,40,800],[640,570,715,35],[1030,460,100,110],[780,530,30,45],[1235,530,30,45],[715,1030,35,150],[580,1085,70,95]].forEach(r=>rc(g,...r));
+E('path',{d:'M960 645L890 1010M1080 650L1000 1080Q960 1165 840 1150Q760 1130 750 1050',fill:'none',stroke:NV,'stroke-width':16},g);
+cloth(g,'M540 1025L575 1050L652 1065L660 1080V365L672 360L785 530L895 1020L1040 480L1075 540L1180 365L1245 540L1310 550L1310 700');
+[[595,362],[672,362],[731,355],[1050,490],[1075,540],[1180,365],[1305,550],[895,1022],[540,1025],[575,1050],[652,1065]].forEach((c,i)=>rl(g,c[0],c[1],24,'Winder Roller '+(i+1)));
+cloth(S,'M2422 770L2436 764L2449 761');
+const bx=1310,by=1090;let R=30,len=0;
+const seg=E('path',{d:'',fill:'none',stroke:CR,'stroke-width':3,'vector-effect':'non-scaling-stroke'},g),sg2=E('path',{d:'',fill:'none',stroke:'#fff','stroke-width':1.6,'stroke-dasharray':'6 6','vector-effect':'non-scaling-stroke',class:'cloth'},g);
+const rg=E('g',{class:'c'},g),roll=E('circle',{cx:bx,cy:by,r:R,fill:'#f4d6da',stroke:CR,'stroke-width':6},rg),lay=[.75,.5].map(f=>E('circle',{cx:bx,cy:by,r:R*f,fill:'none',stroke:'#e49aa6','stroke-width':3},rg)),sp=E('g',{class:'rot'},rg);
+E('circle',{cx:bx,cy:by,r:18,fill:NV},sp);E('path',{d:`M${bx-18} ${by}H${bx+18}M${bx} ${by-18}V${by+18}`,stroke:'#fff','stroke-width':4},sp);
+const dr=()=>{roll.setAttribute('r',R);lay.forEach((c,i)=>c.setAttribute('r',R*[.75,.5][i]));const q=`M1310 700L1310 ${by-R}`;seg.setAttribute('d',q);sg2.setAttribute('d',q)};dr();
+rg.tip=()=>({t:'Fabric Batcher (Winder Roll)',r:[['Status','WINDING'],['Roll Diameter',Math.round(R*10)+' mm'],['Wound Length',len.toFixed(0)+' m'],['Fabric Speed','50.0 m/min'],['Action','Click to doff roll']]});
+rg.addEventListener('click',()=>{R=30;len=0;dr()});upd.push(()=>{R=R>=85?30:R+.6;len+=1.25;dr()});
+const l=box(2570,548,62,34,RED,'M1','#fff',22),v=box(2570,594,62,34,GRN,'1','#fff',26);let on=true;
+[l,v].forEach(e=>{e.classList.add('c');e.addEventListener('click',()=>{on=!on;v.set(on?'1':'0',on?GRN:RED)});e.tip=()=>({t:'Winder Motor M1',r:[['Status',on?'RUNNING':'STOPPED'],['Speed',on?'960 rpm':'0 rpm'],['Current',on?'12.4 A':'0.0 A'],['Voltage',on?'415 V':'0 V'],['Action','Click to start/stop']]})});
+[['Winder Drive',742],['Winder Brush',776]].forEach(([n,y])=>{const b=box(2690,y,36,30,RED,'',YEL,20);b.classList.add('c');let o=false;b.addEventListener('click',()=>{o=!o;b.set('',o?GRN:RED)});b.tip=()=>({t:n,r:[['State',o?'ON':'OFF'],['Action','Click to toggle']]})})}
+// dryers
+const drA=[[455,892,64,37],[594,892,57,35],[783,892,60,30],[1005,900,62,26],[1212,900,62,22],[1427,900,56,18],[1577,905,51,10]];
+const drB=[[381,978,73,40],[527,978,62,36],[675,982,55,32],[885,982,54,28],[1111,985,62,24],[1323,988,61,20],[1534,990,64,16]];
+const drC=[[1978,910,46,3],[1939,995,56,9],[2345,915,122,2],[246,650,72,41],[2525,905,181,1]];
+[...drA,...drB,...drC].forEach(([x,y,v,n])=>{TX(x-10,y-34,22,'DR # '+n,'#b0301c');const b=box(x,y,78,50,RED,v,YEL,32);TX(x+62,y+10,28,'%','#b0301c');let tv=v;b.tip=()=>({t:'Drum Dryer DR #'+n,r:[['Speed',tv+' %'],['Status',tv>0?'RUNNING':'STOPPED'],['Mode','Auto']]});b.classList.add('c');upd.push(()=>{tv=Math.max(0,v+rnd(-1,1));b.set(tv)})});
+// temperature columns
+const pv=[79,80,80,80,80,80,80,81,80];
+[653,758,868,975,1087,1190,1303,1413,1520].forEach((x,i)=>{
+ const vg=E('g',{class:'c'});E('rect',{x:x-28,y:1030,width:56,height:62,fill:'#fff',stroke:'#fff'},vg);const col=pv[i]<80?'#14a0a0':'#d02020';E('path',{d:`M${x-18} 1038h36L${x} 1062l18 24h-36l18-24z`,fill:col},vg);
+ const p=box(x,1120,88,52,pv[i]<80?LG:RED,pv[i],pv[i]<80?'#0a4a0a':YEL,34);const s=box(x,1175,88,52,TEAL,'80','#fff',34);
+ if(!i){TX(580,1130,32,'PV','#fff','end');TX(580,1185,32,'SV','#fff','end')}
+ sel(x,1235,['Man','Aut'],0,92);
+ const ic=box(x,1312,56,56,'#1f9a8a','⇄','#fff',34);ic.classList.add('c');
+ let t=pv[i];const info=()=>({t:'Dryer Zone '+(i+1)+' Temperature',r:[['PV',t+' °C'],['SV','80 °C'],['Deviation',(t-80>0?'+':'')+(t-80)+' °C'],['Status',Math.abs(t-80)<=2?'IN RANGE':'ALARM']]});
+ p.tip=info;s.tip=info;vg.tip=()=>({t:'Steam Valve Z'+(i+1),r:[['Position',(30+i*4)+' %'],['Mode','Manual']]});ic.tip=()=>({t:'Circulation Fan Z'+(i+1),r:[['State','RUNNING']]});
+ upd.push(()=>{t=pv[i]+rnd(-1,1)*(Math.random()<.4?1:0);p.set(t,t<80?LG:RED,t<80?'#0a4a0a':YEL)})});
+TX(1620,1130,30,'°C','#b0301c','start');
+// heat exchangers
+function pvsv(x,y,a,b,name,u='°C'){TX(x-60,y+10,36,'PV','#fff','end');TX(x-60,y+66,36,'SV','#fff','end');const p=box(x,y,100,56,RED,a,YEL,38),s=box(x,y+56,100,56,TEAL,b,'#fff',38);TX(x+75,y+10,32,u,'#fff','start');TX(x+75,y+66,32,u,'#fff','start');let t=a;const f=()=>({t:name,r:[['PV',t+' '+u],['SV',b+' '+u],['Mode','Auto']]});p.tip=f;s.tip=f;upd.push(()=>{t=a+rnd(-1,1);p.set(t)})}
+pvsv(1765,493,75,75,'Heat Exchanger 1');pvsv(2255,500,137,60,'Heat Exchanger 2');
+sel(1765,605,['Aut','Man']);sel(2252,613,['Aut','Man']);sel(1560,243,['Off','On'],0,80);
+TX(1558,303,24,'Heat Exchanger','#fff');
+// flow table
+TX(1086,205,22,'Washing All Padder','#fff');TX(1086,235,22,'Select','#fff');TX(1305,208,22,'Washing All Tracture','#fff');TX(1305,238,22,'Select','#fff');TX(1748,218,22,'M10 - M13');TX(2140,222,22,'M02 - M09');
+[1086,1305,1748,2140].forEach(x=>box(x,265,56,34,'#c9c9e8','1','#333',24));
+TX(2305,258,22,'Actual');TX(2305,288,22,'Flow');TX(2385,282,22,'SV L/Min');
+[[324,'W # 9',16.9,15.5],[382,'W # 7',5.6,31.0],[433,'W # 4',46.0,46.5]].forEach(([y,n,a,s])=>{TX(1932,y+6,22,'Max SV','#fff','end');const m=box(2025,y,82,44,TEAL,'100.0','#fff',24);TX(2088,y+8,22,'%','#fff','start');sel(2152,y,['Aut','Man'],0,80);TX(2228,y+8,22,n,'#fff','start');const q=box(2302,y,70,44,RED,a,YEL,26),w=box(2385,y,70,44,RED,s,YEL,26);let t=a;const f=()=>({t:'Wash Flow '+n,r:[['Actual',t.toFixed(1)+' L/min'],['SV',s+' L/min'],['Max SV','100 %']]});q.tip=f;w.tip=f;upd.push(()=>{t=a+(Math.random()-.5)*.6;q.set(t.toFixed(1))})});
+// filters & low-level
+function fil(x,y,on,lbl){const g=box(x,y,62,62,on?LG:RED,on?'1':'0','#0a4a0a',34);g.classList.add('c');let o=on;g.addEventListener('click',()=>{o=!o;g.set(o?'1':'0',o?LG:RED)});g.tip=()=>({t:'Filter '+lbl,r:[['State',o?'RUNNING':'STOPPED'],['Action','Click to toggle']]});TX(x,y-48,24,'FIL','#fff')}
+fil(478,1218,true,'FIL-1');fil(1685,1100,false,'FIL-2');fil(1797,1100,true,'FIL-3');fil(2277,1108,true,'FIL-4');
+sel(478,1098,['Aut','Man'],0,90);sel(1685,980,['Off','On'],0,90);sel(1797,985,['Aut','Man'],0,90);sel(2277,990,['Man','Aut'],0,90);
+[[755,1383],[1512,1385],[1965,1080],[2135,900]].forEach(([x,y])=>{const g=box(x,y,120,44,'#fff','Low Level','#e05030',22);tip(g,()=>({t:'Level Switch',r:[['Alarm','LOW LEVEL'],['Action','Refill required']]}))});
+// spray pumps
+[[1712,'All Pump\'s',0,'1'],[1792,'Spray Pump # 7',0,1],[1898,'Spray Pump # 6',0,1],[2005,'Spray Pump # 5',0,1],[2110,'Spray Pump # 4',1,0],[2215,'Spray Pump # 3',0,1],[2320,'Spray Pump # 2',0,1]].forEach(([x,n,off,on],i)=>{
+ sel(x,1240,i==4?['Off','Man']:['Man','Aut'],0,98);const w=n.split(' # ');TX(x,1285,24,w[0],'#fff');TX(x,1318,24,w[1]?'Pump # '+w[1]:'Pump\'s','#fff');
+ if(i==0){box(x,1378,62,50,'#ccc','1','#333',30);return}
+ const g=box(x,1378,76,50,on?LG:RED,on?'1':'0','#0a4a0a',30);g.classList.add('c');let o=!!on;g.addEventListener('click',()=>{o=!o;g.set(o?'1':'0',o?LG:RED)});g.tip=()=>({t:n,r:[['State',o?'RUNNING':'STOPPED'],['Pressure',o?(4+i*.1).toFixed(1)+' bar':'0.0 bar'],['Action','Click to toggle']]})});
+// hover
+document.addEventListener('mousemove',e=>{let n=e.target,f=null;while(n&&n!==document){if(n.tip){f=n.tip;break}n=n.parentNode}
+ if(!f){tipEl.style.display='none';return}const d=f();tipEl.innerHTML=`<b>${d.t}</b>`+d.r.map(r=>`<div><span>${r[0]}</span>${r[1]}</div>`).join('');tipEl.style.display='block';
+ tipEl.style.left=Math.min(e.clientX+16,innerWidth-200)+'px';tipEl.style.top=Math.min(e.clientY+16,innerHeight-130)+'px'});
+setInterval(()=>upd.forEach(f=>f()),1500);
+</script>
+<script src="hmi-fabric.js"></script>
+<script>fabricWrap(S);
+</script></body></html>
