@@ -81,18 +81,36 @@ const markDetail = (node: Element, index: number): { title: string; detail: Deta
   };
 };
 
-const distToSegment = (px: number, py: number, x1: number, y1: number, x2: number, y2: number) => {
+type SegmentHit = { distance: number; t: number; x: number; y: number };
+
+const distToSegment = (
+  px: number,
+  py: number,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+): SegmentHit => {
   const dx = x2 - x1;
   const dy = y2 - y1;
-  if (dx === 0 && dy === 0) return Math.hypot(px - x1, py - y1);
+  if (dx === 0 && dy === 0) {
+    return { distance: Math.hypot(px - x1, py - y1), t: 0, x: x1, y: y1 };
+  }
   const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy)));
   const x = x1 + t * dx;
   const y = y1 + t * dy;
   return { distance: Math.hypot(px - x, py - y), t, x, y };
 };
 
-const hitMark = (svg: SVGSVGElement, clientX: number, clientY: number, stretch = false) => {
-  let best: { x: number; y: number; node: Element; index: number } | null = null;
+type MarkHit = { x: number; y: number; node: Element; index: number };
+
+const hitMark = (
+  svg: SVGSVGElement,
+  clientX: number,
+  clientY: number,
+  stretch = false,
+): MarkHit | null => {
+  let best: MarkHit | null = null;
   let bestDistance = stretch ? 34 : 22;
   svg.querySelectorAll('polyline').forEach((line) => {
     const node = line as SVGPolylineElement;
