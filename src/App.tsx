@@ -31,6 +31,7 @@ import {
   ETPStatusPage,
   RONetworkPage,
 } from './components/dashboards/PortalPages';
+import { PlantOverviewDashboard } from './components/dashboards/PlantOverviewDashboard';
 import { JobCardDashboard } from './components/dashboards/JobCardDashboard';
 import { BatchTraceDashboard } from './components/dashboards/BatchTraceDashboard';
 import { mockAlarmsList } from './data/mockPlantData';
@@ -39,7 +40,7 @@ import './App.css';
 
 export const App: React.FC = () => {
   // Navigation State
-  const [activeId, setActiveId] = useState<string>('energy-dashboard');
+  const [activeId, setActiveId] = useState<string>('dashboard');
 
   // Submenus state: In screenshot 2, Dashboard, Printing, and Dyeing are expanded
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({
@@ -79,6 +80,8 @@ export const App: React.FC = () => {
 
   const renderActiveDashboard = () => {
     switch (activeId) {
+      case 'dashboard':
+        return <PlantOverviewDashboard />;
       case 'energy-dashboard':
         return <EnergyGaugesPage />;
       case 'steam-flow':
@@ -87,6 +90,7 @@ export const App: React.FC = () => {
         return <MoistureDashboard />;
       case 'panel-temperature':
         return <PanelTemperatureDashboard />;
+      case 'ltm-4':
       case 'printing-quality':
       case 'dyeing-quality':
         return <QualityParametersPage />;

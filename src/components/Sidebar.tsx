@@ -207,6 +207,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   className={`nav-link ${isParentActive ? 'active' : ''}`}
                   onClick={(event) => {
                     if (item.hasSubmenu) {
+                      if (item.id === 'dashboard') onSelect(item.id, item.label);
                       setPinnedId((current) => (current === item.id ? null : item.id));
                       toggleMenu(item.id);
                       placeFlyout(event.currentTarget);
@@ -216,8 +217,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     }
                   }}
                 >
-                  <span className="nav-icon">{renderIcon(item.icon)}</span>
+                  <span className="nav-icon">
+                    {renderIcon(item.icon)}
+                    {item.id === 'ltm-4' && <span className="ltm-live-dot" title="Live" />}
+                  </span>
                   <span className="nav-text">{item.label}</span>
+                  {item.id === 'ltm-4' && <span className="ltm-live-label">Live</span>}
                   {item.badge !== undefined && <span className="nav-badge-pill">{item.badge}</span>}
                 </div>
 

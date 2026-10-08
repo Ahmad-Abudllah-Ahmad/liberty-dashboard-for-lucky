@@ -11,24 +11,24 @@
   --sidebar-header: #283090;
   --sidebar-submenu-bg: #283090;
   --sidebar-text: #f4f5fc;
-  --sidebar-text-hover: #0f172a;
+  --sidebar-text-hover: #ffffff;
   --sidebar-active-bg: #ffffff;
-  --sidebar-border: rgba(255, 255, 255, 0.12);
+  --sidebar-border: #e3e7f2;
 
   --header-bg: #ffffff;
   --header-height: 84px;
   --header-border: #e9ecef;
-  --header-icon-color: #3a42a8;
+  --header-icon-color: #5c66c4;
 
-  --main-bg: #f3f4fa;
+  --main-bg: #f7f8fc;
   --card-bg: #ffffff;
   --card-border: #e2e8f0;
 
   --badge-yellow: #f59e0b;
   --badge-red: #ef4444;
   --badge-green: #10b981;
-  --badge-blue: #3a42a8;
-  --badge-purple: #8b5cf6;
+  --badge-blue: #5c66c4;
+  --badge-purple: #7d86d6;
 
   --text-dark: #1e293b;
   --text-muted: #64748b;
@@ -111,6 +111,6 @@ button {
 .text-green { color: #10b981; }
 .text-red { color: #ef4444; }
 .text-yellow { color: #f59e0b; }
-.text-blue { color: #3a42a8; }
-.text-purple { color: #8b5cf6; }
+.text-blue { color: #4a5398; }
+.text-purple { color: #5c66c4; }
 .text-muted { color: #94a3b8; }

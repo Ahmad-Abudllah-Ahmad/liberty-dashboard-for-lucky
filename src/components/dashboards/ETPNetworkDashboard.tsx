@@ -147,7 +147,7 @@ export const ETPNetworkDashboard: React.FC = () => {
               <div className="pfd-metric-line"><span>DO Aeration:</span> <strong className="font-mono text-green">2.45 mg/L</strong></div>
             </div>
             <div className="pfd-liquid-bar">
-              <div className="pfd-liquid-fill" style={{ width: '85%', background: '#3a42a8' }}></div>
+              <div className="pfd-liquid-fill" style={{ width: '85%', background: '#6d76cc' }}></div>
             </div>
           </div>
 

@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ChartHoverTip } from '../charts/PortalCharts';
+import { SummaryGallery } from './SummaryGallery';
 
 export type MonitorRow = {
   label: string;
@@ -30,7 +31,7 @@ interface SplitMonitorProps {
   parentLabel?: string;
 }
 
-type ViewMode = 'table' | 'chart' | 'report' | 'hmi';
+type ViewMode = 'table' | 'chart' | 'report' | 'hmi' | 'summary';
 type SortKey = 'label' | 'tag' | 'date' | 'tolerance' | 'unit' | 'setValue' | 'value' | 'difference';
 
 const HMI_SCREENS: Record<string, string[]> = {
@@ -102,6 +103,22 @@ const signedValue = (value: string | number | undefined) => {
   return text.startsWith('+') || text.startsWith('(') ? text : `+${text}`;
 };
 
+const rowWithSet = (row: MonitorRow, setValue: string | number | undefined): MonitorRow => {
+  if (setValue === undefined || String(setValue) === String(row.setValue ?? '')) return row;
+  const setPoint = parseNum(setValue);
+  const actual = parseNum(row.value);
+  if (setPoint === null || actual === null) return { ...row, setValue };
+  const delta = actual - setPoint;
+  const tolerance = parseNum(row.tolerance) ?? 5;
+  const percent = setPoint === 0 ? (actual === 0 ? 0 : 100) : Math.abs(delta / setPoint) * 100;
+  return {
+    ...row,
+    setValue,
+    difference: formatNum(delta, row.difference ?? delta),
+    tone: percent <= tolerance ? 'ok' : 'bad',
+  };
+};
+
 const formatClock = (date: Date) =>
   date.toLocaleString('en-US', {
     month: 'numeric',
@@ -132,7 +149,7 @@ const Sparkline: React.FC<{ samples: Sample[]; tone?: MonitorRow['tone']; label:
   unit,
 }) => {
   const [hover, setHover] = useState<{ index: number; x: number; y: number } | null>(null);
-  const color = tone === 'bad' ? '#dc2626' : tone === 'warn' ? '#d97706' : '#283090';
+  const color = tone === 'bad' ? '#dc2626' : tone === 'warn' ? '#d97706' : '#5c66c4';
   if (samples.length < 2) {
     return <div className="spark-empty">Collecting live samples…</div>;
   }
@@ -262,8 +279,283 @@ const Sparkline: React.FC<{ samples: Sample[]; tone?: MonitorRow['tone']; label:
   );
 };
 
-const PIE_COLORS = ['#283090', '#14b8a6', '#f59e0b', '#7c3aed', '#4a51b0', '#84cc16', '#f472b6', '#64748b'];
-const TREND_COLORS = ['#283090', '#7c3aed', '#3a42a8', '#d97706', '#db2777', '#16a34a'];
+const hashLabel = (text: string) => {
+  let hash = 0;
+  for (let index = 0; index < text.length; index += 1) hash = (hash * 33 + text.charCodeAt(index)) >>> 0;
+  return hash;
+};
+
+const HISTORY_STEP = 60 * 1000;
+const HISTORY_SPAN = 30 * 24 * 60 * 60 * 1000;
+
+const historicSamples = (row: MonitorRow, end: number): Sample[] => {
+  const actual = parseNum(row.value);
+  if (actual === null || !end) return [];
+  const setPoint = parseNum(row.setValue);
+  const center = setPoint ?? actual;
+  const phase = hashLabel(row.label) % 360;
+  const swing = Math.max(Math.abs(center) * 0.035, 0.35);
+  const start = end - HISTORY_SPAN;
+  const samples: Sample[] = [];
+  let index = 0;
+  for (let time = start; time < end; time += HISTORY_STEP) {
+    const progress = (time - start) / HISTORY_SPAN;
+    const wave = Math.sin(index / 7 + phase) * swing + Math.sin(index / 29 + phase / 5) * swing * 0.45;
+    const value = center + wave * (1 - progress * 0.15) + (actual - center) * progress;
+    samples.push({ t: time, v: value });
+    index += 1;
+  }
+  samples.push({ t: end, v: actual });
+  return samples;
+};
+
+const toDateInput = (time: number) => {
+  const date = new Date(time);
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
+
+const formatAxisTime = (time: number, span: number) => {
+  const date = new Date(time);
+  if (span > 2 * 24 * 60 * 60 * 1000) {
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+  return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+};
+
+const SUMMARY_RANGES = [
+  { id: '1m', label: 'Last minute', ms: 60 * 1000 },
+  { id: '1h', label: '1 hour', ms: 60 * 60 * 1000 },
+  { id: '6h', label: '6 hours', ms: 6 * 60 * 60 * 1000 },
+  { id: '1d', label: '1 day', ms: 24 * 60 * 60 * 1000 },
+  { id: '7d', label: '7 days', ms: 7 * 24 * 60 * 60 * 1000 },
+  { id: '1mo', label: '1 month', ms: 30 * 24 * 60 * 60 * 1000 },
+  { id: '2mo', label: '2 months', ms: 60 * 24 * 60 * 60 * 1000 },
+  { id: '3mo', label: '3 months', ms: 90 * 24 * 60 * 60 * 1000 },
+  { id: '6mo', label: '6 months', ms: 182 * 24 * 60 * 60 * 1000 },
+  { id: '1y', label: '1 year', ms: 365 * 24 * 60 * 60 * 1000 },
+  { id: 'custom', label: 'Custom', ms: 0 },
+] as const;
+
+const summaryStep = (span: number) => {
+  if (span <= 60 * 1000) return 5 * 1000;
+  if (span <= 60 * 60 * 1000) return 60 * 1000;
+  if (span <= 6 * 60 * 60 * 1000) return 5 * 60 * 1000;
+  if (span <= 24 * 60 * 60 * 1000) return 15 * 60 * 1000;
+  if (span <= 7 * 24 * 60 * 60 * 1000) return 60 * 60 * 1000;
+  return 6 * 60 * 60 * 1000;
+};
+
+const readingAt = (row: MonitorRow, time: number, end: number) => {
+  const actual = parseNum(row.value);
+  if (actual === null) return null;
+  const setPoint = parseNum(row.setValue);
+  const center = setPoint ?? actual;
+  const phase = hashLabel(row.label) % 360;
+  const swing = Math.max(Math.abs(center) * 0.035, 0.35);
+  const minutes = Math.floor(time / 60000);
+  const wave = Math.sin(minutes / 7 + phase) * swing + Math.sin(minutes / 29 + phase / 5) * swing * 0.45;
+  const pull = Math.exp(-(end - time) / (6 * 60 * 60 * 1000));
+  return center + wave * (1 - pull * 0.15) + (actual - center) * pull;
+};
+
+const withinTolerance = (row: MonitorRow, value: number) => {
+  const setPoint = parseNum(row.setValue);
+  const tolerance = parseNum(row.tolerance) ?? 5;
+  if (setPoint === null) return true;
+  const percent = setPoint === 0 ? (value === 0 ? 0 : 100) : Math.abs((value - setPoint) / setPoint) * 100;
+  return percent <= tolerance;
+};
+
+const TIME_RANGES = [
+  { id: '1h', label: '1 hour', ms: 60 * 60 * 1000 },
+  { id: '8h', label: '8 hours', ms: 8 * 60 * 60 * 1000 },
+  { id: '24h', label: '24 hours', ms: 24 * 60 * 60 * 1000 },
+  { id: '7d', label: '7 days', ms: 7 * 24 * 60 * 60 * 1000 },
+  { id: '30d', label: '30 days', ms: 30 * 24 * 60 * 60 * 1000 },
+  { id: 'all', label: 'All history', ms: 0 },
+  { id: 'custom', label: 'Custom', ms: 0 },
+] as const;
+
+const HistoryWindow: React.FC<{
+  row: MonitorRow;
+  machine: string;
+  openedAt: number;
+  live: Sample[];
+  onClose: () => void;
+}> = ({ row, machine, openedAt, live, onClose }) => {
+  const archive = useMemo(() => historicSamples(row, openedAt), [row, openedAt]);
+  const series = useMemo(() => {
+    const tail = live.filter((sample) => sample.t > openedAt);
+    return tail.length ? [...archive, ...tail] : archive;
+  }, [archive, live, openedAt]);
+  const [range, setRange] = useState<(typeof TIME_RANGES)[number]['id']>('all');
+  const [customFrom, setCustomFrom] = useState(() => toDateInput(openedAt - 24 * 60 * 60 * 1000));
+  const [customTo, setCustomTo] = useState(() => toDateInput(openedAt));
+  const [hover, setHover] = useState<number | null>(null);
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  const latest = series[series.length - 1]?.t ?? openedAt;
+  const visible = series.filter((sample) => {
+    if (range === 'all') return true;
+    if (range === 'custom') {
+      const from = new Date(customFrom).getTime();
+      const to = new Date(customTo).getTime();
+      if (!Number.isFinite(from) || !Number.isFinite(to)) return true;
+      return sample.t >= Math.min(from, to) && sample.t <= Math.max(from, to);
+    }
+    const windowMs = TIME_RANGES.find((item) => item.id === range)?.ms ?? 0;
+    return sample.t >= latest - windowMs;
+  });
+  const raw = visible.length > 1 ? visible : series.slice(-2);
+  const stride = raw.length > 900 ? Math.ceil(raw.length / 900) : 1;
+  const points = stride === 1 ? raw : raw.filter((_, index) => index % stride === 0 || index === raw.length - 1);
+  const values = points.map((sample) => sample.v);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const average = values.reduce((sum, value) => sum + value, 0) / values.length;
+  const headroom = max - min ? (max - min) * 0.12 : Math.max(Math.abs(max) * 0.08, 0.5);
+  const lo = min - headroom;
+  const hi = max + headroom;
+  const span = hi - lo || 1;
+  const width = 960;
+  const height = 420;
+  const padL = 58;
+  const padR = 18;
+  const padT = 16;
+  const padB = 36;
+  const plotW = width - padL - padR;
+  const plotH = height - padT - padB;
+  const t0 = points[0].t;
+  const t1 = points[points.length - 1].t;
+  const xOf = (time: number) => padL + ((t1 === t0 ? 0.5 : (time - t0) / (t1 - t0)) * plotW);
+  const yOf = (value: number) => padT + ((hi - value) / span) * plotH;
+  const coords = points.map((sample) => `${xOf(sample.t)},${yOf(sample.v)}`).join(' ');
+  const color = row.tone === 'bad' ? '#dc2626' : row.tone === 'warn' ? '#d97706' : '#283090';
+  const setPoint = parseNum(row.setValue);
+  const decimals = axisDecimals(span);
+  const yTicks = [0, 1, 2, 3, 4].map((step) => lo + (span * step) / 4);
+  const xTicks = [0, 0.25, 0.5, 0.75, 1].map((step) => t0 + (t1 - t0) * step);
+  const tip = hover === null ? null : points[Math.min(hover, points.length - 1)];
+
+  return (
+    <div className="history-window" role="dialog" aria-modal="true" aria-label={`${row.label} history`}>
+      <button type="button" className="history-window-backdrop" aria-label="Close history" onClick={onClose} />
+      <section className="history-window-panel">
+        <header className="history-window-head">
+          <div>
+            <p>{machine}</p>
+            <h3>{row.label}</h3>
+          </div>
+          <button type="button" className="history-window-close" onClick={onClose}>
+            Close
+          </button>
+        </header>
+        <div className="history-filters">
+          {TIME_RANGES.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={range === item.id ? 'active' : ''}
+              onClick={() => setRange(item.id)}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+        {range === 'custom' && (
+          <div className="history-custom">
+            <label>
+              From
+              <input type="datetime-local" value={customFrom} onChange={(event) => setCustomFrom(event.target.value)} />
+            </label>
+            <label>
+              To
+              <input type="datetime-local" value={customTo} onChange={(event) => setCustomTo(event.target.value)} />
+            </label>
+            <span>
+              {points.length.toLocaleString()} samples
+              {' · '}
+              {formatAxisTime(t0, t1 - t0)} – {formatAxisTime(t1, t1 - t0)}
+            </span>
+          </div>
+        )}
+        <div className="history-stats">
+          <div><span>Latest</span><strong>{points[points.length - 1].v.toFixed(2)} {row.unit || ''}</strong></div>
+          <div><span>Average</span><strong>{average.toFixed(2)}</strong></div>
+          <div><span>Minimum</span><strong>{min.toFixed(2)}</strong></div>
+          <div><span>Maximum</span><strong>{max.toFixed(2)}</strong></div>
+          <div><span>Samples</span><strong>{raw.length.toLocaleString()}</strong></div>
+          {setPoint !== null && <div><span>Set</span><strong>{setPoint}</strong></div>}
+        </div>
+        <div className="history-plot chart-interactive" onMouseLeave={() => setHover(null)}>
+          {tip && (
+            <ChartHoverTip
+              title={row.label}
+              status={{
+                label: row.tone === 'bad' ? 'Alert' : row.tone === 'warn' ? 'Watch' : 'Recorded',
+                tone: row.tone === 'bad' ? 'bad' : row.tone === 'warn' ? 'warn' : 'ok',
+              }}
+              stats={[
+                { label: 'Value', value: `${tip.v.toFixed(2)} ${row.unit || ''}`.trim() },
+                { label: 'Time', value: formatClock(new Date(tip.t)) },
+              ]}
+            />
+          )}
+          <svg
+            viewBox={`0 0 ${width} ${height}`}
+            role="img"
+            aria-label={`${row.label} historic trend`}
+            onMouseMove={(event) => {
+              const box = event.currentTarget.getBoundingClientRect();
+              const x = ((event.clientX - box.left) / box.width) * width;
+              const ratio = Math.min(1, Math.max(0, (x - padL) / plotW));
+              setHover(Math.round(ratio * (points.length - 1)));
+            }}
+          >
+            {yTicks.map((value) => (
+              <g key={value}>
+                <line x1={padL} x2={width - padR} y1={yOf(value)} y2={yOf(value)} stroke="#e8edf3" />
+                <text x={padL - 8} y={yOf(value) + 4} textAnchor="end" fontSize="11" fill="#64748b">
+                  {value.toFixed(decimals)}
+                </text>
+              </g>
+            ))}
+            {setPoint !== null && (
+              <line
+                x1={padL}
+                x2={width - padR}
+                y1={yOf(setPoint)}
+                y2={yOf(setPoint)}
+                stroke="#94a3b8"
+                strokeDasharray="5 4"
+              />
+            )}
+            {tip && (
+              <line x1={xOf(tip.t)} x2={xOf(tip.t)} y1={padT} y2={height - padB} stroke="#94a3b8" strokeDasharray="3 3" />
+            )}
+            <polyline fill="none" stroke={color} strokeWidth="2.4" points={coords} />
+            {tip && <circle cx={xOf(tip.t)} cy={yOf(tip.v)} r="4.5" fill="#ffffff" stroke={color} strokeWidth="2" />}
+            {xTicks.map((time) => (
+              <text key={time} x={xOf(time)} y={height - 10} textAnchor="middle" fontSize="11" fill="#64748b">
+                {formatAxisTime(time, t1 - t0)}
+              </text>
+            ))}
+          </svg>
+        </div>
+      </section>
+    </div>
+  );
+};
+const PIE_COLORS = ['#2f8f8a', '#5c9aa8', '#c4923a', '#3d7ea6', '#8b93a7', '#8fb39a', '#d9a3a3', '#64748b'];
+const TREND_COLORS = ['#2f8f8a', '#3d7ea6', '#5c9aa8', '#c4923a', '#d16b6b', '#5c9aa8'];
 
 const movementOf = (row: MonitorRow, samples?: Sample[]): number | null => {
   const actual = parseNum(row.value);
@@ -454,7 +746,7 @@ const ReportVisuals: React.FC<{
                     style={{
                       width: `${width}%`,
                       left: positive ? '50%' : `${50 - width}%`,
-                      background: item.row.tone === 'bad' ? '#dc2626' : item.move >= 0 ? '#16a34a' : '#283090',
+                      background: item.row.tone === 'bad' ? '#dc2626' : item.move >= 0 ? '#16a34a' : '#5c66c4',
                     }}
                   />
                 </span>
@@ -561,6 +853,132 @@ const ReportVisuals: React.FC<{
   );
 };
 
+const GRAPH_COLORS = ['#283090', '#0f766e', '#b45309', '#be123c', '#1d4ed8', '#7c3aed', '#047857', '#c2410c', '#0369a1', '#a16207'];
+
+const ValueSummary: React.FC<{
+  machine: string;
+  rows: MonitorRow[];
+  now: number;
+}> = ({ machine, rows, now }) => {
+  const summaryRef = useRef<HTMLDivElement>(null);
+  const [range, setRange] = useState<(typeof SUMMARY_RANGES)[number]['id']>('1h');
+  const [customFrom, setCustomFrom] = useState(() => toDateInput(now - 24 * 60 * 60 * 1000));
+  const [customTo, setCustomTo] = useState(() => toDateInput(now));
+  const [tip, setTip] = useState<{ x: number; y: number; title: string; detail: { label: string; value: string }[] } | null>(null);
+  const showTip = (event: React.MouseEvent, title: string, detail: { label: string; value: string }[]) => {
+    const tipWidth = 240;
+    const tipHeight = 180;
+    let x = event.clientX + 14;
+    let y = event.clientY + 14;
+    if (x + tipWidth > window.innerWidth - 8) x = Math.max(8, event.clientX - tipWidth - 12);
+    if (y + tipHeight > window.innerHeight - 8) y = Math.max(8, event.clientY - tipHeight - 8);
+    setTip({ x, y, title, detail });
+  };
+  const hideTip = () => setTip(null);
+
+  const windowRange = useMemo(() => {
+    if (range === 'custom') {
+      const from = new Date(customFrom).getTime();
+      const to = new Date(customTo).getTime();
+      if (!Number.isFinite(from) || !Number.isFinite(to)) return { from: now - 60 * 60 * 1000, to: now };
+      return { from: Math.min(from, to), to: Math.max(from, to) };
+    }
+    const ms = SUMMARY_RANGES.find((item) => item.id === range)?.ms ?? 60 * 60 * 1000;
+    return { from: now - ms, to: now };
+  }, [range, customFrom, customTo, now]);
+
+  const graph = useMemo(() => {
+    const span = Math.max(windowRange.to - windowRange.from, 1000);
+    const step = summaryStep(span);
+    const stride = Math.max(1, Math.ceil(span / step / 70));
+    return rows.flatMap((row, rowIndex) => {
+      const actual = parseNum(row.value);
+      const setPoint = parseNum(row.setValue);
+      if (actual === null || setPoint === null || setPoint === 0) return [];
+      const points: { t: number; v: number }[] = [];
+      let index = 0;
+      let sum = 0;
+      let count = 0;
+      let inside = 0;
+      for (let time = windowRange.from; time <= windowRange.to; time += step) {
+        const last = time >= windowRange.to - step;
+        const value = last ? actual : readingAt(row, time, windowRange.to) ?? actual;
+        sum += value;
+        count += 1;
+        if (withinTolerance(row, value)) inside += 1;
+        if (index % stride === 0 || last) points.push({ t: time, v: (value / setPoint) * 100 });
+        index += 1;
+      }
+      return [{
+        label: row.label,
+        unit: row.unit ?? '',
+        actual,
+        setPoint,
+        average: count ? (sum / count / setPoint) * 100 : (actual / setPoint) * 100,
+        insideShare: count ? inside / count : 0,
+        color: GRAPH_COLORS[rowIndex % GRAPH_COLORS.length],
+        points,
+      }];
+    });
+  }, [rows, windowRange.from, windowRange.to]);
+
+  const rangeLabel = SUMMARY_RANGES.find((item) => item.id === range)?.label ?? 'Summary';
+  const stamp = (time: number) =>
+    new Date(time).toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+
+  return (
+    <div className="split-summary" ref={summaryRef} role="region" aria-label="Live value summary">
+      <div className="split-summary-head">
+        <div>
+          <strong>{machine}</strong>
+          <span>{rangeLabel} • {stamp(windowRange.from)} to {stamp(windowRange.to)}</span>
+        </div>
+      </div>
+      <div className="split-summary-filters">
+        {SUMMARY_RANGES.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className={range === item.id ? 'active' : ''}
+            onClick={() => setRange(item.id)}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+      {range === 'custom' && (
+        <div className="split-summary-custom">
+          <label>
+            From
+            <input type="datetime-local" value={customFrom} onChange={(event) => setCustomFrom(event.target.value)} />
+          </label>
+          <label>
+            To
+            <input type="datetime-local" value={customTo} onChange={(event) => setCustomTo(event.target.value)} />
+          </label>
+        </div>
+      )}
+      {graph.length > 0 && (
+        <SummaryGallery machine={machine} series={graph} onTip={showTip} onHide={hideTip} />
+      )}
+      {tip && (
+        <div className="sum-tip" style={{ left: tip.x, top: tip.y }}>
+          <strong>{tip.title}</strong>
+          {tip.detail.map((row) => (
+            <span key={row.label}><em>{row.label}</em>{row.value}</span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const SplitMonitor: React.FC<SplitMonitorProps> = ({
   title,
   breadcrumb,
@@ -578,10 +996,14 @@ export const SplitMonitor: React.FC<SplitMonitorProps> = ({
   const [toneFilter, setToneFilter] = useState<'all' | 'ok' | 'bad'>('all');
   const [sort, setSort] = useState<{ key: SortKey; dir: 'asc' | 'desc' } | null>(null);
   const [activeRow, setActiveRow] = useState<number | null>(null);
-  const [view, setView] = useState<ViewMode>('report');
+  const [view, setView] = useState<ViewMode>(parentLabel === 'LTM 4' ? 'table' : 'report');
+  const [setOverrides, setSetOverrides] = useState<Record<string, string>>({});
+  const [focusChart, setFocusChart] = useState<MonitorRow | null>(null);
+  const [focusOpened, setFocusOpened] = useState(0);
   const [clock, setClock] = useState<Date>(() => new Date());
   const [liveRows, setLiveRows] = useState<MonitorRow[]>([]);
   const [history, setHistory] = useState<Record<string, Sample[]>>({});
+  const [summaryNow, setSummaryNow] = useState(() => Date.now());
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -688,7 +1110,10 @@ export const SplitMonitor: React.FC<SplitMonitorProps> = ({
 
   const tableRows = useMemo(() => {
     const q = rowQuery.trim().toLowerCase();
-    let rows = selected.rows.map((row, index) => ({ row, index }));
+    let rows = selected.rows.map((row, index) => {
+      const edited = setOverrides[`${selected.id}:${row.label}`];
+      return { row: edited === undefined ? row : rowWithSet(row, edited), index };
+    });
     if (q) {
       rows = rows.filter(({ row }) =>
         `${row.label} ${row.tag ?? ''} ${row.unit ?? ''} ${row.value}`.toLowerCase().includes(q),
@@ -712,7 +1137,26 @@ export const SplitMonitor: React.FC<SplitMonitorProps> = ({
       });
     }
     return rows;
-  }, [selected.rows, rowQuery, toneFilter, sort, activeMode]);
+  }, [selected.rows, selected.id, setOverrides, rowQuery, toneFilter, sort, activeMode]);
+
+  const summaryRows = useMemo(
+    () =>
+      selected.rows.map((row) => {
+        const live = liveRows.find((item) => item.label === row.label);
+        const merged = live
+          ? { ...row, value: live.value, difference: live.difference, tone: live.tone, date: live.date }
+          : row;
+        const edited = setOverrides[`${selected.id}:${row.label}`];
+        return edited === undefined ? merged : rowWithSet(merged, edited);
+      }),
+    [selected.rows, selected.id, liveRows, setOverrides],
+  );
+
+  useEffect(() => {
+    if (view !== 'summary') return undefined;
+    const timer = window.setInterval(() => setSummaryNow(Date.now()), 2000);
+    return () => window.clearInterval(timer);
+  }, [view]);
 
   const toggleSort = (key: SortKey) => {
     setSort((current) =>
@@ -752,7 +1196,7 @@ export const SplitMonitor: React.FC<SplitMonitorProps> = ({
               <div
                 className={`split-list-row ${machine.id === selected.id ? 'active' : ''}`}
               >
-                {machineHasHmi(machine) && (
+                {(parentLabel === 'LTM 4' || machineHasHmi(machine)) && (
                   <button
                     type="button"
                     className="split-hmi-btn"
@@ -770,7 +1214,7 @@ export const SplitMonitor: React.FC<SplitMonitorProps> = ({
                   className="split-list-item"
                   onClick={() => {
                     setSelectedId(machine.id);
-                    setView('report');
+                    if (parentLabel !== 'LTM 4') setView('report');
                   }}
                 >
                   {machine.name}
@@ -783,9 +1227,38 @@ export const SplitMonitor: React.FC<SplitMonitorProps> = ({
 
         <section className="split-detail">
           <div className="split-detail-bar">
-            <h3>{selected.name}</h3>
+            <h3>
+              {selected.name}
+              {parentLabel === 'LTM 4' && (
+                <span className="ltm-live">
+                  <span className="ltm-live-dot" />
+                  <span className="ltm-live-label">Live</span>
+                </span>
+              )}
+            </h3>
             <div className="split-detail-actions">
-              {machineHasHmi(selected) && (
+              {parentLabel === 'LTM 4' && (
+                <button
+                  type="button"
+                  className={`btn-ghost-link ${view === 'table' ? 'active' : ''}`}
+                  onClick={() => setView('table')}
+                >
+                  Quality Parameters
+                </button>
+              )}
+              {parentLabel === 'LTM 4' && (
+                <button
+                  type="button"
+                  className={`btn-ghost-link ${view === 'summary' ? 'active' : ''}`}
+                  onClick={() => {
+                    setSummaryNow(Date.now());
+                    setView('summary');
+                  }}
+                >
+                  Summary
+                </button>
+              )}
+              {(parentLabel === 'LTM 4' || machineHasHmi(selected)) && (
                 <button
                   type="button"
                   className={`btn-ghost-link ${view === 'hmi' ? 'active' : ''}`}
@@ -811,6 +1284,12 @@ export const SplitMonitor: React.FC<SplitMonitorProps> = ({
             </div>
           </div>
 
+          {parentLabel === 'LTM 4' && view === 'summary' && (
+            <div className="live-pane summary-page">
+              <ValueSummary machine={selected.name} rows={summaryRows} now={summaryNow} />
+            </div>
+          )}
+
           {activeMode === 'tags' && view === 'table' && (
             <div className="split-tabs">
               <button
@@ -830,13 +1309,17 @@ export const SplitMonitor: React.FC<SplitMonitorProps> = ({
             </div>
           )}
 
-          {view === 'hmi' && machineHasHmi(selected) && (
+          {view === 'hmi' && (parentLabel === 'LTM 4' || machineHasHmi(selected)) && (
             <div className="hmi-pane">
-              <iframe
-                key={MACHINE_HMI[selected.id]}
-                title={`${selected.name} HMI`}
-                src={MACHINE_HMI[selected.id]}
-              />
+              {machineHasHmi(selected) ? (
+                <iframe
+                  key={MACHINE_HMI[selected.id]}
+                  title={`${selected.name} HMI`}
+                  src={MACHINE_HMI[selected.id]}
+                />
+              ) : (
+                <p className="empty-table-note">No HMI screen is linked for {selected.name}.</p>
+              )}
             </div>
           )}
 
@@ -852,7 +1335,18 @@ export const SplitMonitor: React.FC<SplitMonitorProps> = ({
               ) : (
                 <div className="live-chart-grid">
                   {chartRows.map((row) => (
-                    <article key={row.label} className={`live-chart-card${row.tone === 'bad' ? ' is-red' : ''}`}>
+                    <article
+                      key={row.label}
+                      className={`live-chart-card${row.tone === 'bad' ? ' is-red' : ''}${parentLabel === 'LTM 4' ? ' is-openable' : ''}`}
+                      onClick={
+                        parentLabel === 'LTM 4'
+                          ? () => {
+                              setFocusChart(row);
+                              setFocusOpened(Date.now());
+                            }
+                          : undefined
+                      }
+                    >
                       <header>
                         <h4>{row.label}</h4>
                         <strong className={toneClass(row.tone)}>
@@ -865,6 +1359,16 @@ export const SplitMonitor: React.FC<SplitMonitorProps> = ({
                 </div>
               )}
             </div>
+          )}
+
+          {parentLabel === 'LTM 4' && focusChart && (
+            <HistoryWindow
+              row={focusChart}
+              machine={selected.name}
+              openedAt={focusOpened}
+              live={history[focusChart.label] || []}
+              onClose={() => setFocusChart(null)}
+            />
           )}
 
           {view === 'report' && (
@@ -1032,7 +1536,19 @@ export const SplitMonitor: React.FC<SplitMonitorProps> = ({
                                   {column.key === 'difference' ? signedValue(row.difference) : row.value}
                                 </span>
                               ) : column.key === 'setValue' ? (
-                                <span className="tag-set">{row.setValue}</span>
+                                <input
+                                  className="tag-set-input"
+                                  value={String(row.setValue ?? '')}
+                                  aria-label={`Set value for ${row.label}`}
+                                  onClick={(event) => event.stopPropagation()}
+                                  onChange={(event) => {
+                                    const next = event.target.value;
+                                    setSetOverrides((current) => ({ ...current, [`${selected.id}:${row.label}`]: next }));
+                                    setLiveRows((current) =>
+                                      current.map((item) => (item.label === row.label ? rowWithSet(item, next) : item)),
+                                    );
+                                  }}
+                                />
                               ) : (
                                 row[column.key] ?? ''
                               )}

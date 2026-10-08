@@ -17,11 +17,6 @@ export const navigationMenu: NavigationItem[] = [
     id: 'ltm-4',
     label: 'LTM 4',
     icon: 'dyeing',
-    hasSubmenu: true,
-    subitems: [
-      { id: 'dyeing-quality', label: 'Quality Parameters', iconType: 'copy' },
-      { id: 'dyeing-live', label: 'Live Monitoring', iconType: 'image' },
-    ],
   },
   {
     id: 'alarms',

@@ -1,6 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { processingMachines, machineValue } from '../../data/processingMachines';
+import { MachineSelect } from './MachineSelect';
 
 export const SteamFlowDashboard: React.FC = () => {
+  const [machineId, setMachineId] = useState(processingMachines[0].id);
+  const machine = processingMachines.find((item) => item.id === machineId) ?? processingMachines[0];
+  const boilerOne = machineValue(machine.id, 18.2, 6);
+  const boilerTwo = machineValue(machine.id, 16.8, 5);
+  const recovery = machineValue(machine.id, 7.5, 3);
+  const total = Number((boilerOne + boilerTwo + recovery).toFixed(2));
+  const pressure = machineValue(machine.id, 10.24, 0.8, 2);
+  const headerTemp = machineValue(machine.id, 184.2, 4);
+  const recoveryPct = machineValue(machine.id, 78.4, 8);
+  const machineFlow = machineValue(machine.id, 12.4, 8);
+  const machineShare = Math.min(68, Math.max(12, Number(((machineFlow / total) * 100).toFixed(1))));
 
   return (
     <div className="dashboard-content">
@@ -8,9 +21,10 @@ export const SteamFlowDashboard: React.FC = () => {
       <div className="content-header-row">
         <div>
           <h2>Steam Flow & Thermal Energy Distribution</h2>
-          <p className="content-subtitle">Lucky Textile • Central Steam Headers, Boilers & Process Lines</p>
+          <p className="content-subtitle">Lucky Textile • {machine.category} • {machine.name}</p>
         </div>
         <div className="header-actions-group">
+          <MachineSelect value={machine.id} onChange={setMachineId} />
           <span className="badge-tag green">STEAM BALANCE: BALANCED (±0.4%)</span>
           <button className="btn-export">Export Enthalpy Report</button>
         </div>
@@ -24,11 +38,11 @@ export const SteamFlowDashboard: React.FC = () => {
             <span className="metric-badge green">NORMAL</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">42.50</span>
+            <span className="metric-number">{total.toFixed(2)}</span>
             <span className="metric-unit">TPH</span>
           </div>
           <div className="metric-footer">
-            Boiler 1: 18.2 • Boiler 2: 16.8 • WHRB: 7.5 TPH
+            Boiler 1: {boilerOne} • Boiler 2: {boilerTwo} • WHRB: {recovery} TPH
           </div>
         </div>
 
@@ -38,7 +52,7 @@ export const SteamFlowDashboard: React.FC = () => {
             <span className="metric-badge green">STABLE</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">10.24</span>
+            <span className="metric-number">{pressure.toFixed(2)}</span>
             <span className="metric-unit">Bar</span>
           </div>
           <div className="metric-footer">
@@ -52,7 +66,7 @@ export const SteamFlowDashboard: React.FC = () => {
             <span className="metric-badge normal">SATURATED</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">184.2</span>
+            <span className="metric-number">{headerTemp.toFixed(1)}</span>
             <span className="metric-unit">°C</span>
           </div>
           <div className="metric-footer">
@@ -66,7 +80,7 @@ export const SteamFlowDashboard: React.FC = () => {
             <span className="metric-badge green">HIGH EFFICIENCY</span>
           </div>
           <div className="metric-body">
-            <span className="metric-number">78.4</span>
+            <span className="metric-number">{recoveryPct.toFixed(1)}</span>
             <span className="metric-unit">%</span>
           </div>
           <div className="metric-footer">
@@ -94,7 +108,7 @@ export const SteamFlowDashboard: React.FC = () => {
                 <span className="badge-status-running">RUNNING</span>
               </div>
               <div className="b-metrics-grid">
-                <div><span>Flow Rate:</span> <strong className="font-mono">18.2 TPH</strong></div>
+                <div><span>Flow Rate:</span> <strong className="font-mono">{boilerOne} TPH</strong></div>
                 <div><span>Pressure:</span> <strong className="font-mono">10.4 Bar</strong></div>
                 <div><span>Stack Temp:</span> <strong className="font-mono">152 °C</strong></div>
                 <div><span>O₂ Excess:</span> <strong className="font-mono">3.4%</strong></div>
@@ -110,7 +124,7 @@ export const SteamFlowDashboard: React.FC = () => {
                 <span className="badge-status-running">RUNNING</span>
               </div>
               <div className="b-metrics-grid">
-                <div><span>Flow Rate:</span> <strong className="font-mono">16.8 TPH</strong></div>
+                <div><span>Flow Rate:</span> <strong className="font-mono">{boilerTwo} TPH</strong></div>
                 <div><span>Pressure:</span> <strong className="font-mono">10.3 Bar</strong></div>
                 <div><span>Stack Temp:</span> <strong className="font-mono">164 °C</strong></div>
                 <div><span>O₂ Excess:</span> <strong className="font-mono">3.8%</strong></div>
@@ -126,7 +140,7 @@ export const SteamFlowDashboard: React.FC = () => {
                 <span className="badge-status-running">OPTIMAL RECOVERY</span>
               </div>
               <div className="b-metrics-grid">
-                <div><span>Flow Rate:</span> <strong className="font-mono">7.5 TPH</strong></div>
+                <div><span>Flow Rate:</span> <strong className="font-mono">{recovery} TPH</strong></div>
                 <div><span>Pressure:</span> <strong className="font-mono">9.8 Bar</strong></div>
                 <div><span>Inlet Gas:</span> <strong className="font-mono">485 °C</strong></div>
                 <div><span>Outlet Gas:</span> <strong className="font-mono">142 °C</strong></div>
@@ -139,17 +153,17 @@ export const SteamFlowDashboard: React.FC = () => {
         <div className="scada-panel">
           <div className="panel-title-bar">
             <h3>Departmental Steam Consumers</h3>
-            <span className="badge-tag">Total: 42.1 TPH</span>
+            <span className="badge-tag">Total: {total.toFixed(1)} TPH</span>
           </div>
 
           <div className="consumer-list">
             <div className="consumer-item">
               <div className="consumer-header">
-                <span className="c-name">Dyeing House (Fong's, Thies, Jiggers)</span>
-                <span className="c-flow font-mono">17.8 TPH (42.3%)</span>
+                <span className="c-name">{machine.name}</span>
+                <span className="c-flow font-mono">{machineFlow.toFixed(1)} TPH ({machineShare}%)</span>
               </div>
               <div className="source-bar">
-                <div className="source-fill dye-fill" style={{ width: '42.3%' }}></div>
+                <div className="source-fill dye-fill" style={{ width: `${machineShare}%` }}></div>
               </div>
             </div>
 

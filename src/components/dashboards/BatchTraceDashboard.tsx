@@ -125,7 +125,7 @@ const printSticker = (batch: Batch) => {
   doc.write(`<!DOCTYPE html><html><head><title>Sticker ${batch.number}</title><style>
     @page { size: 90mm 72mm; margin: 4mm; }
     body { margin: 0; font-family: Arial, sans-serif; color: #0f172a; }
-    .sticker { width: 82mm; border: 1.5px solid #283090; border-radius: 3mm; padding: 3mm 4mm; text-align: center; }
+    .sticker { width: 82mm; border: 1.5px solid #5c66c4; border-radius: 3mm; padding: 3mm 4mm; text-align: center; }
     .logo { display: block; width: 26mm; height: auto; margin: 0 auto 1.5mm; }
     svg { width: 28mm; height: 28mm; display: block; margin: 1mm auto; }
     strong { display: block; font-size: 16px; letter-spacing: 0.03em; }

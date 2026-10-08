@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AxisBarChart, RingGauge, SliceChart } from '../charts/PortalCharts';
+import { AxisBarChart, ChartHoverTip, SliceChart } from '../charts/PortalCharts';
 import { SplitMonitor } from '../scada/SplitMonitor';
 import {
   ltm4Machines,
@@ -118,8 +118,16 @@ export const WaterPumpMonitorPage: React.FC = () => (
   />
 );
 
+const utilityEmoji: Record<string, string> = {
+  Steam: '♨️',
+  Electricity: '⚡',
+  Gas: '🔥',
+  Water: '💧',
+};
+
 export const EnergyGaugesPage: React.FC = () => {
   const [tab, setTab] = useState<'steam' | 'gas' | 'power' | 'water'>('steam');
+  const [hover, setHover] = useState<'steam' | 'gas' | 'power' | 'water' | null>(null);
 
   const bars =
     tab === 'gas'
@@ -127,8 +135,8 @@ export const EnergyGaugesPage: React.FC = () => {
           title: 'Gas Consumption (M³)',
           max: 40000,
           items: [
-            { label: 'Consumption', value: 28420, color: '#ef4444' },
-            { label: 'Wastage', value: 5813, color: '#fbbf24' },
+            { label: 'Consumption', value: 28420, color: '#d16b6b' },
+            { label: 'Wastage', value: 5813, color: '#f0d0d0' },
           ],
         }
       : tab === 'power'
@@ -145,16 +153,16 @@ export const EnergyGaugesPage: React.FC = () => {
               title: 'Water Consumption (M³)',
               max: 4000,
               items: [
-                { label: 'Consumption', value: 2740, color: '#14b8a6' },
-                { label: 'Wastage', value: 469, color: '#fbbf24' },
+                { label: 'Consumption', value: 2740, color: '#5c9aa8' },
+                { label: 'Wastage', value: 469, color: '#d4e6ea' },
               ],
             }
           : {
               title: 'Steam Consumption (Tons)',
               max: 500,
               items: [
-                { label: 'Consumption', value: 440.77, color: '#3a42a8' },
-                { label: 'Wastage', value: 86.27, color: '#fbbf24' },
+                { label: 'Consumption', value: 440.77, color: '#2f8f8a' },
+                { label: 'Wastage', value: 86.27, color: '#d7eeec' },
               ],
             };
 
@@ -163,34 +171,51 @@ export const EnergyGaugesPage: React.FC = () => {
       ? {
           title: 'Gas Supply Mix',
           slices: [
-            { label: 'Line gas', value: 81.4, color: '#ef4444' },
-            { label: 'Captive', value: 18.6, color: '#111827' },
+            { label: 'Line gas', value: 81.4, color: '#d16b6b' },
+            { label: 'Captive', value: 18.6, color: '#8b93a7' },
           ],
         }
       : tab === 'power'
         ? {
             title: 'Power Generation',
             slices: [
-              { label: 'Grid', value: 46.2, color: '#f59e0b' },
-              { label: 'Genset', value: 31.5, color: '#111827' },
-              { label: 'Solar', value: 22.3, color: '#14b8a6' },
+              { label: 'Grid', value: 46.2, color: '#c4923a' },
+              { label: 'Genset', value: 31.5, color: '#8b93a7' },
+              { label: 'Solar', value: 22.3, color: '#5c9aa8' },
             ],
           }
         : tab === 'water'
           ? {
               title: 'Water Source',
               slices: [
-                { label: 'RO', value: 58.2, color: '#14b8a6' },
-                { label: 'Raw', value: 41.8, color: '#111827' },
+                { label: 'RO', value: 58.2, color: '#5c9aa8' },
+                { label: 'Raw', value: 41.8, color: '#8b93a7' },
               ],
             }
           : {
               title: 'Steam Generation',
               slices: [
-                { label: 'Coal', value: 25.1, color: '#111827' },
-                { label: 'Gas', value: 74.9, color: '#14b8a6' },
+                { label: 'Coal', value: 25.1, color: '#8b93a7' },
+                { label: 'Gas', value: 74.9, color: '#2f8f8a' },
               ],
             };
+
+  const utilities: {
+    key: 'steam' | 'gas' | 'power' | 'water';
+    label: string;
+    color: string;
+    percent: number;
+    consumed: string;
+    measure: string;
+    cost: string;
+    rate: string;
+  }[] = [
+    { key: 'steam', label: 'Steam', color: '#2f8f8a', percent: 72, consumed: '527.05', measure: 'Ton', cost: '50,000', rate: 'Rs/Ton' },
+    { key: 'power', label: 'Electricity', color: '#c4923a', percent: 64, consumed: '18,926.93', measure: 'kWh', cost: '38', rate: 'Rs/kWh' },
+    { key: 'gas', label: 'Gas', color: '#d16b6b', percent: 58, consumed: '34,233.00', measure: 'M³', cost: '40', rate: 'Rs/M³' },
+    { key: 'water', label: 'Water', color: '#5c9aa8', percent: 46, consumed: '3,209.01', measure: 'M³', cost: '1,400', rate: 'Rs/M³' },
+  ];
+  const active = utilities.find((item) => item.key === tab) ?? utilities[0];
 
   return (
     <div className="portal-page energy-gauges-page">
@@ -198,75 +223,97 @@ export const EnergyGaugesPage: React.FC = () => {
         <h2>Energy Dashboard</h2>
       </div>
 
-      <div className="energy-gauge-row">
-        <RingGauge label="Steam" color="#7c3aed" percent={72} icon="♨" />
-        <RingGauge label="Electricity" color="#f59e0b" percent={64} icon="⚡" />
-        <RingGauge label="Gas" color="#ef4444" percent={58} icon="🔥" />
-        <RingGauge label="Water" color="#14b8a6" percent={46} icon="💧" />
+      <div className="energy-board" role="tablist" aria-label="Utilities">
+        {utilities.map((item) => {
+          const selected = tab === item.key;
+          const high = item.percent >= 80;
+          return (
+            <button
+              key={item.key}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              className={`energy-util${selected ? ' is-selected' : ''}`}
+              style={{ ['--util' as string]: item.color }}
+              onClick={() => setTab(item.key)}
+            >
+              <span className="energy-util-top">
+                <span
+                  className="energy-util-ring chart-interactive"
+                  onMouseEnter={() => setHover(item.key)}
+                  onMouseLeave={() => setHover((current) => (current === item.key ? null : current))}
+                >
+                  {hover === item.key && (
+                    <ChartHoverTip
+                      title={item.label}
+                      status={{ label: high ? 'High Load' : 'Nominal', tone: high ? 'bad' : 'ok' }}
+                      stats={[
+                        { label: 'Load', value: `${item.percent.toFixed(1)}%` },
+                        { label: 'Headroom', value: `${(100 - item.percent).toFixed(1)}%` },
+                        { label: 'Consumed', value: `${item.consumed} ${item.measure}` },
+                        { label: 'Unit cost', value: `${item.cost} ${item.rate}` },
+                      ]}
+                    />
+                  )}
+                  <svg viewBox="0 0 40 40" aria-hidden="true">
+                    <circle cx="20" cy="20" r="16" fill="none" stroke="#e8edf3" strokeWidth="3.5" />
+                    <circle
+                      cx="20"
+                      cy="20"
+                      r="16"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3.5"
+                      strokeLinecap="round"
+                      strokeDasharray={`${(item.percent / 100) * 100.53} ${100.53 - (item.percent / 100) * 100.53}`}
+                      transform="rotate(-90 20 20)"
+                    />
+                  </svg>
+                  <span className="energy-util-emoji" aria-hidden="true">
+                    {utilityEmoji[item.label]}
+                  </span>
+                </span>
+                <span className="energy-util-name">
+                  <strong>{item.label}</strong>
+                  <em className={high ? 'is-high' : ''}>{high ? 'High load' : 'Nominal'}</em>
+                </span>
+                <span className="energy-util-pct">
+                  {item.percent}
+                  <small>%</small>
+                </span>
+              </span>
+              <span className="energy-util-room">{100 - item.percent}% headroom</span>
+              <span className="energy-util-metrics">
+                <span>
+                  <em>Consumed</em>
+                  <strong>{item.consumed}</strong>
+                  <small>{item.measure}</small>
+                </span>
+                <span>
+                  <em>Unit cost</em>
+                  <strong>{item.cost}</strong>
+                  <small>{item.rate}</small>
+                </span>
+              </span>
+            </button>
+          );
+        })}
       </div>
 
-      <div className="energy-stat-row">
-        <div className="energy-stat steam">
-          Steam Consumed : 527.05 Ton<br />Cost Rs/Ton : 50,000
+      <div className="energy-analysis">
+        <div className="energy-analysis-label">
+          <span style={{ background: active.color }} />
+          <strong>{active.label} breakdown</strong>
         </div>
-        <div className="energy-stat power">
-          Electric Consumed : 18,926.93 kWh<br />Cost Rs/kWh : 38
-        </div>
-        <div className="energy-stat gas">
-          Gas Consumed : 34,233.00 M³<br />Cost Rs/M³ : 40
-        </div>
-        <div className="energy-stat water">
-          Water Consumed : 3,209.01 M³<br />Cost Rs/M³ : 1,400
-        </div>
-      </div>
-
-      <div className="energy-chart-tabs">
-        {(['steam', 'gas', 'power', 'water'] as const).map((key) => (
-          <button key={key} type="button" className={tab === key ? 'active' : ''} onClick={() => setTab(key)}>
-            {key.toUpperCase()}
-          </button>
-        ))}
-      </div>
-
-      <div className="energy-charts-grid">
-        <div className="portal-card">
-          <h3>{bars.title}</h3>
-          <AxisBarChart bars={bars.items} max={bars.max} category={tab} />
-        </div>
-
-        <div className="portal-card">
-          <h3>{generation.title}</h3>
-          <SliceChart slices={generation.slices} donut suffix="%" />
-        </div>
-
-        <div className="portal-card">
-          <h3>Dyeing Unit (Steam Consumption in Ton)</h3>
-          <SliceChart
-            slices={[
-              { label: 'Sanforize 4', value: 51.82, color: '#111827' },
-              { label: 'Goller Mercerize 2', value: 12.25, color: '#3a42a8' },
-              { label: 'Goller Mercerize 3', value: 5.15, color: '#f472b6' },
-              { label: 'Pad Stenter 2', value: 0.06, color: '#94a3b8' },
-            ]}
-          />
-        </div>
-
-        <div className="portal-card is-wide">
-          <h3>Printing Unit (Steam Consumption in Ton)</h3>
-          <SliceChart
-            slices={[
-              { label: 'BLEACHING-01', value: 85.83, color: '#14b8a6' },
-              { label: 'BLEACHING-02', value: 79.46, color: '#3a42a8' },
-              { label: 'BLEACHING-03', value: 76.45, color: '#111827' },
-              { label: 'MERCERIZE', value: 47.63, color: '#c9cef0' },
-              { label: 'DESIZE-01', value: 27.18, color: '#a78bfa' },
-              { label: 'DESIZE-02', value: 22.51, color: '#f472b6' },
-              { label: 'PAD STEAM DYEING', value: 17.98, color: '#fb7185' },
-              { label: 'CANLAR 150+50', value: 14.69, color: '#f59e0b' },
-              { label: 'CANLAR 750', value: 13.91, color: '#22c55e' },
-              { label: 'SANFORIZING', value: 8.68, color: '#64748b' },
-            ]}
-          />
+        <div className="energy-charts-grid">
+          <div className="portal-card">
+            <h3>{bars.title}</h3>
+            <AxisBarChart bars={bars.items} max={bars.max} category={tab} />
+          </div>
+          <div className="portal-card">
+            <h3>{generation.title}</h3>
+            <SliceChart slices={generation.slices} donut suffix="%" />
+          </div>
         </div>
       </div>
     </div>
