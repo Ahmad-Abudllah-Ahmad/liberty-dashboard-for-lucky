@@ -3,7 +3,7 @@ import { ChartHoverTip } from '../charts/PortalCharts';
 import { mockAlarmsList, mockMachines } from '../../data/mockPlantData';
 
 type Slice = { label: string; value: number; color: string; detail?: string };
-type Tip = { title: string; tone: 'ok' | 'warn' | 'bad'; status: string; stats: { label: string; value: string }[] };
+type Tip = { title: string; tone: 'ok' | 'warn' | 'bad'; status: string; stats: { label: string; value: string }[]; x?: number; y?: number };
 
 const steamHours = [390, 372, 368, 401, 448, 486, 512, 504, 491, 470, 452, 441];
 const steamForecast = [448, 456, 463, 459, 451, 444];
@@ -16,7 +16,7 @@ const areaIndex = [
   { label: 'Water', value: 46, color: '#5c9aa8' },
   { label: 'Moisture', value: 88, color: '#3d7ea6' },
   { label: 'Panel temp', value: 76, color: '#8b93a7' },
-  { label: 'LTM quality', value: 94, color: '#283090' },
+  { label: 'Machine efficiency', value: 94, color: '#283090' },
   { label: 'Boilers', value: 84, color: '#2f8f8a' },
   { label: 'Heat exch.', value: 89, color: '#5c9aa8' },
   { label: 'Geneset', value: 80, color: '#c4923a' },
@@ -90,7 +90,15 @@ const Bars: React.FC<{ items: Slice[]; unit: string; axisMax?: number }> = ({ it
 
   return (
     <div className="plant-plot chart-interactive" onMouseLeave={() => setTip(null)}>
-      {tip && <ChartHoverTip title={tip.title} status={{ label: tip.status, tone: tip.tone }} stats={tip.stats} />}
+      {tip && (
+        <ChartHoverTip
+          className={tip.x !== undefined ? 'chart-hover-tip-float' : undefined}
+          style={tip.x !== undefined ? { left: tip.x, top: tip.y, right: 'auto' } : undefined}
+          title={tip.title}
+          status={{ label: tip.status, tone: tip.tone }}
+          stats={tip.stats}
+        />
+      )}
       <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet" role="img">
         {Array.from({ length: ticks + 1 }, (_, step) => {
           const y = padT + plotH - (plotH * step) / ticks;
@@ -112,11 +120,15 @@ const Bars: React.FC<{ items: Slice[]; unit: string; axisMax?: number }> = ({ it
           return (
             <g
               key={item.label}
-              onMouseEnter={() =>
+              onMouseEnter={(event) => {
+                const host = event.currentTarget.ownerSVGElement?.parentElement?.getBoundingClientRect();
+                const mark = event.currentTarget.getBoundingClientRect();
                 setTip({
                   title: item.label,
                   tone: 'ok',
                   status: 'Live',
+                  x: mark.left + mark.width / 2 - (host?.left ?? 0),
+                  y: mark.top - (host?.top ?? 0),
                   stats: item.detail
                     ? [
                         { label: unit, value: item.detail },
@@ -126,8 +138,8 @@ const Bars: React.FC<{ items: Slice[]; unit: string; axisMax?: number }> = ({ it
                         { label: unit, value: item.value.toFixed(0) },
                         { label: 'Register', value: 'Live' },
                       ],
-                })
-              }
+                });
+              }}
             >
               <rect x={padL + index * gap} y={padT} width={gap} height={plotH} fill="transparent" />
               <rect x={x} y={y} width={Math.max(8, gap * 0.5)} height={barH} rx="3" fill={item.color} />
@@ -161,24 +173,35 @@ const Pie: React.FC<{ slices: Slice[] }> = ({ slices }) => {
 
   return (
     <div className="plant-plot chart-interactive" onMouseLeave={() => setTip(null)}>
-      {tip && <ChartHoverTip title={tip.title} status={{ label: tip.status, tone: tip.tone }} stats={tip.stats} />}
+      {tip && (
+        <ChartHoverTip
+          className={tip.x !== undefined ? 'chart-hover-tip-float' : undefined}
+          style={tip.x !== undefined ? { left: tip.x, top: tip.y, right: 'auto' } : undefined}
+          title={tip.title}
+          status={{ label: tip.status, tone: tip.tone }}
+          stats={tip.stats}
+        />
+      )}
       <svg viewBox="0 0 280 200" preserveAspectRatio="xMidYMid meet" role="img">
         {arcs.map(({ slice, d }) => (
           <path
             key={slice.label}
             d={d}
             fill={slice.color}
-            onMouseEnter={() =>
+            onMouseEnter={(event) => {
+              const host = event.currentTarget.ownerSVGElement?.parentElement?.getBoundingClientRect();
               setTip({
                 title: slice.label,
                 tone: 'ok',
                 status: 'Share',
+                x: event.clientX - (host?.left ?? 0),
+                y: event.clientY - (host?.top ?? 0),
                 stats: [
                   { label: 'Share', value: `${slice.value.toFixed(1)}%` },
                   { label: 'Of mix', value: 'Power' },
                 ],
-              })
-            }
+              });
+            }}
           />
         ))}
         <circle cx="78" cy="96" r="26" fill="#ffffff" pointerEvents="none" />
@@ -246,7 +269,15 @@ const Trend: React.FC<{ series: number[]; forecast?: boolean }> = ({ series, for
 
   return (
     <div className="plant-plot chart-interactive" onMouseLeave={() => setTip(null)}>
-      {tip && <ChartHoverTip title={tip.title} status={{ label: tip.status, tone: tip.tone }} stats={tip.stats} />}
+      {tip && (
+        <ChartHoverTip
+          className={tip.x !== undefined ? 'chart-hover-tip-float' : undefined}
+          style={tip.x !== undefined ? { left: tip.x, top: tip.y, right: 'auto' } : undefined}
+          title={tip.title}
+          status={{ label: tip.status, tone: tip.tone }}
+          stats={tip.stats}
+        />
+      )}
       <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet" role="img">
         {[0, 1, 2, 3, 4].map((step) => {
           const y = padT + plotH - (plotH * step) / 4;
@@ -282,17 +313,21 @@ const Trend: React.FC<{ series: number[]; forecast?: boolean }> = ({ series, for
         {series.map((value, index) => (
           <g
             key={`${value}-${index}`}
-            onMouseEnter={() =>
+            onMouseEnter={(event) => {
+              const host = event.currentTarget.ownerSVGElement?.parentElement?.getBoundingClientRect();
+              const mark = event.currentTarget.getBoundingClientRect();
               setTip({
                 title: forecast && index > split ? `+${(index - split) * 2}h forecast` : `${hourLabels[index] || index * 2}h`,
                 tone: forecast && index > split ? 'warn' : 'ok',
                 status: forecast && index > split ? 'Forecast' : 'Actual',
+                x: mark.left + mark.width / 2 - (host?.left ?? 0),
+                y: mark.top + mark.height / 2 - (host?.top ?? 0),
                 stats: [
                   { label: 'Steam', value: `${value.toFixed(0)} ton` },
                   { label: 'Window', value: forecast && index > split ? 'Projected' : 'Recorded' },
                 ],
-              })
-            }
+              });
+            }}
           >
             <circle cx={xAt(index)} cy={yAt(value)} r="12" fill="transparent" />
             <circle cx={xAt(index)} cy={yAt(value)} r="3.5" fill={forecast && index > split ? '#2f8f8a' : '#283090'} />
@@ -320,7 +355,15 @@ const Scatter: React.FC<{ points: typeof scatter }> = ({ points }) => {
 
   return (
     <div className="plant-plot chart-interactive" onMouseLeave={() => setTip(null)}>
-      {tip && <ChartHoverTip title={tip.title} status={{ label: tip.status, tone: tip.tone }} stats={tip.stats} />}
+      {tip && (
+        <ChartHoverTip
+          className={tip.x !== undefined ? 'chart-hover-tip-float' : undefined}
+          style={tip.x !== undefined ? { left: tip.x, top: tip.y, right: 'auto' } : undefined}
+          title={tip.title}
+          status={{ label: tip.status, tone: tip.tone }}
+          stats={tip.stats}
+        />
+      )}
       <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet" role="img">
         {[70, 80, 90, 100].map((value) => {
           const y = padT + plotH - ((value - yMin) / (yMax - yMin)) * plotH;
@@ -348,17 +391,21 @@ const Scatter: React.FC<{ points: typeof scatter }> = ({ points }) => {
           return (
             <g
               key={point.label}
-              onMouseEnter={() =>
-                setTip({
-                  title: point.label,
-                  tone: point.tone === 'bad' ? 'bad' : point.tone === 'warn' ? 'warn' : 'ok',
-                  status: point.tone === 'ok' ? 'Running' : point.tone === 'warn' ? 'Warning' : 'Idle',
-                  stats: [
-                    { label: 'Temp', value: `${point.x.toFixed(1)} °C` },
-                    { label: 'Efficiency', value: `${point.y.toFixed(1)}%` },
-                  ],
-                })
-              }
+            onMouseEnter={(event) => {
+              const host = event.currentTarget.ownerSVGElement?.parentElement?.getBoundingClientRect();
+              const mark = event.currentTarget.getBoundingClientRect();
+              setTip({
+                title: point.label,
+                tone: point.tone === 'bad' ? 'bad' : point.tone === 'warn' ? 'warn' : 'ok',
+                status: point.tone === 'ok' ? 'Running' : point.tone === 'warn' ? 'Warning' : 'Idle',
+                x: mark.left + mark.width / 2 - (host?.left ?? 0),
+                y: mark.top + mark.height / 2 - (host?.top ?? 0),
+                stats: [
+                  { label: 'Temp', value: `${point.x.toFixed(1)} °C` },
+                  { label: 'Efficiency', value: `${point.y.toFixed(1)}%` },
+                ],
+              });
+            }}
             >
               <circle cx={cx} cy={cy} r="14" fill="transparent" />
               <circle cx={cx} cy={cy} r="5" fill={fill} />
@@ -374,7 +421,15 @@ const Areas: React.FC<{ areas: { label: string; value: number; color: string }[]
   const [tip, setTip] = useState<Tip | null>(null);
   return (
     <div className="plant-areas chart-interactive" onMouseLeave={() => setTip(null)}>
-      {tip && <ChartHoverTip title={tip.title} status={{ label: tip.status, tone: tip.tone }} stats={tip.stats} />}
+      {tip && (
+        <ChartHoverTip
+          className={tip.x !== undefined ? 'chart-hover-tip-float' : undefined}
+          style={tip.x !== undefined ? { left: tip.x, top: tip.y, right: 'auto' } : undefined}
+          title={tip.title}
+          status={{ label: tip.status, tone: tip.tone }}
+          stats={tip.stats}
+        />
+      )}
       <div className="plant-scale">
         <span>0</span>
         <span>25</span>
@@ -465,7 +520,16 @@ export const PlantOverviewDashboard: React.FC = () => {
   const powerLoad = clamp(nudge(64, 1.6, 1.1, seconds), 52, 76);
   const gasLoad = clamp(nudge(58, 1.5, 2.2, seconds), 46, 70);
   const waterLoad = clamp(nudge(46, 1.4, 3.1, seconds), 36, 58);
-  const quality = clamp(nudge(94, 0.8, 0.8, seconds), 90, 98);
+  const runningMachines = mockMachines.filter((machine) => machine.status === 'running');
+  const speedAttainment = clamp(nudge(96.4, 0.5, 0.2, seconds), 92, 99);
+  const inTolerance = clamp(nudge(93.1, 0.6, 0.9, seconds), 88, 98);
+  const uptimeShare = clamp(nudge(91.8, 0.4, 1.4, seconds), 86, 97);
+  const efficiencyParameters = [
+    { label: 'Speed', value: speedAttainment },
+    { label: 'In tolerance', value: inTolerance },
+    { label: 'Uptime', value: uptimeShare },
+  ];
+  const quality = efficiencyParameters.reduce((sum, item) => sum + item.value, 0) / efficiencyParameters.length;
   const steamTon = nudge(527.05, 2.2, 0.5, seconds);
   const powerKwh = nudge(18926.93, 36, 1.4, seconds);
   const gasM3 = nudge(34233, 55, 2.4, seconds);
@@ -615,21 +679,23 @@ export const PlantOverviewDashboard: React.FC = () => {
         <article className="chart-interactive" onMouseEnter={() => setKpi('quality')} onMouseLeave={() => setKpi(null)}>
           {kpi === 'quality' && (
             <ChartHoverTip
-              title="LTM quality"
-              status={{ label: quality >= 90 ? 'Nominal' : 'Watch', tone: quality >= 90 ? 'ok' : 'warn' }}
+              title="Running machine efficiency"
+              status={{ label: 'Mean', tone: quality >= 90 ? 'ok' : 'warn' }}
               stats={[
-                { label: 'Quality', value: `${quality.toFixed(1)}%` },
-                { label: 'Headroom', value: `${(100 - quality).toFixed(1)}%` },
-                { label: 'Machines', value: 'Running' },
-                { label: 'Area', value: 'LTM 4' },
+                { label: 'Efficiency', value: `${quality.toFixed(1)}%` },
+                ...efficiencyParameters.map((item) => ({ label: item.label, value: `${item.value.toFixed(1)}%` })),
+                { label: 'Running', value: `${runningMachines.length} of ${mockMachines.length}` },
               ]}
             />
           )}
           <LiveRing percent={quality} color="#283090" mark="🧵" />
           <div>
-            <span>LTM quality</span>
+            <span>Machine efficiency</span>
             <strong>{quality.toFixed(0)}%</strong>
-            <em>Running machines</em>
+            <em>Running machine efficiency</em>
+            <small className="plant-kpi-params">
+              {efficiencyParameters.map((item) => `${item.label} ${item.value.toFixed(1)}%`).join(' · ')}
+            </small>
           </div>
         </article>
       </div>

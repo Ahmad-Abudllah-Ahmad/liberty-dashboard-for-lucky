@@ -50,8 +50,6 @@ export const PanelTemperatureDashboard: React.FC = () => {
         </div>
         <div className="header-actions-group">
           <MachineSelect value={machine.id} onChange={setMachineId} />
-          <span className={`badge-tag ${alerts.length ? 'yellow' : 'green'}`}>{alerts.length} PANEL ALERTS</span>
-          <button className="btn-export">Export Thermal Report</button>
         </div>
       </div>
 

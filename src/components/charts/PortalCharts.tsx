@@ -124,6 +124,7 @@ export const AxisBarChart: React.FC<{
   category?: string;
 }> = ({ bars, max, category }) => {
   const [active, setActive] = useState<number | null>(null);
+  const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
   const [boxRef, box] = useBoxSize();
   const width = box?.width ?? 520;
   const height = box?.height ?? 260;
@@ -138,9 +139,11 @@ export const AxisBarChart: React.FC<{
   const hoverBar = active !== null ? bars[active] : null;
 
   return (
-    <div className="axis-chart chart-interactive" onMouseLeave={() => setActive(null)}>
+    <div className="axis-chart chart-interactive" onMouseLeave={() => { setActive(null); setAnchor(null); }}>
       {hoverBar && (
         <ChartHoverTip
+          className={anchor ? 'chart-hover-tip-float' : undefined}
+          style={anchor ? { left: anchor.x, top: anchor.y, right: 'auto' } : undefined}
           title={hoverBar.label}
           status={{
             label: hoverBar.value / safeMax >= 0.8 ? 'High Share' : 'In Range',
@@ -174,7 +177,18 @@ export const AxisBarChart: React.FC<{
               const h = (Math.min(bar.value, safeMax) / safeMax) * plotH;
               const y = padT + plotH - h;
               return (
-                <g key={bar.label} onMouseEnter={() => setActive(index)}>
+                <g
+                  key={bar.label}
+                  onMouseEnter={(event) => {
+                    const host = event.currentTarget.ownerSVGElement?.closest('.axis-chart')?.getBoundingClientRect();
+                    const mark = event.currentTarget.getBoundingClientRect();
+                    setAnchor({
+                      x: mark.left + mark.width / 2 - (host?.left ?? 0),
+                      y: mark.top - (host?.top ?? 0),
+                    });
+                    setActive(index);
+                  }}
+                >
                   <rect x={x} y={padT} width={barW} height={plotH} fill="transparent" />
                   <rect x={x} y={y} width={barW} height={h} rx={2} fill={bar.color} pointerEvents="none" />
                   <text
@@ -253,6 +267,7 @@ export const SliceChart: React.FC<{
   suffix?: string;
 }> = ({ slices, donut = false, suffix = '' }) => {
   const [active, setActive] = useState<number | null>(null);
+  const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
   const [boxRef, box] = useBoxSize();
   const width = box?.width ?? 520;
   const height = box?.height ?? 280;
@@ -310,9 +325,11 @@ export const SliceChart: React.FC<{
   const hoverSlice = active !== null ? paths[active] : null;
 
   return (
-    <div className="slice-chart chart-interactive" onMouseLeave={() => setActive(null)}>
+    <div className="slice-chart chart-interactive" onMouseLeave={() => { setActive(null); setAnchor(null); }}>
       {hoverSlice && (
         <ChartHoverTip
+          className={anchor ? 'chart-hover-tip-float' : undefined}
+          style={anchor ? { left: anchor.x, top: anchor.y, right: 'auto' } : undefined}
           title={hoverSlice.label}
           status={{
             label: hoverSlice.pct >= 40 ? 'High Share' : 'In Range',
@@ -328,7 +345,19 @@ export const SliceChart: React.FC<{
         {box && (
           <svg viewBox={`0 0 ${width} ${height}`} role="img">
             {paths.map((slice, index) => (
-              <path key={slice.label} d={slice.d} fill={slice.color} onMouseEnter={() => setActive(index)} />
+              <path
+                key={slice.label}
+                d={slice.d}
+                fill={slice.color}
+                onMouseEnter={(event) => {
+                  const host = event.currentTarget.ownerSVGElement?.closest('.slice-chart')?.getBoundingClientRect();
+                  setAnchor({
+                    x: event.clientX - (host?.left ?? 0),
+                    y: event.clientY - (host?.top ?? 0),
+                  });
+                  setActive(index);
+                }}
+              />
             ))}
             {donut && <circle cx={cx} cy={cy} r={(r * 5) / 9} fill="#ffffff" />}
             {!donut &&

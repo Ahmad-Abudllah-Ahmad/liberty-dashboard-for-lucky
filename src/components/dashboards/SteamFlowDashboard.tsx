@@ -21,12 +21,9 @@ export const SteamFlowDashboard: React.FC = () => {
       <div className="content-header-row">
         <div>
           <h2>Steam Flow & Thermal Energy Distribution</h2>
-          <p className="content-subtitle">Lucky Textile • {machine.category} • {machine.name}</p>
         </div>
         <div className="header-actions-group">
           <MachineSelect value={machine.id} onChange={setMachineId} />
-          <span className="badge-tag green">STEAM BALANCE: BALANCED (±0.4%)</span>
-          <button className="btn-export">Export Enthalpy Report</button>
         </div>
       </div>
 

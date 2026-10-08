@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ChartHoverTip } from '../charts/PortalCharts';
 import { SummaryGallery } from './SummaryGallery';
 
@@ -36,19 +36,35 @@ type SortKey = 'label' | 'tag' | 'date' | 'tolerance' | 'unit' | 'setValue' | 'v
 
 const HMI_SCREENS: Record<string, string[]> = {
   '/hmi/scada-main-screen.html': [
+    'mercerize',
+    'ager-4',
+    'ager-hs-03',
+    'al-abid',
+    'arioli',
+    'arioli-2',
+  ],
+  '/hmi/canlar.html': ['canlar-150', 'canlar-1500', 'canlar-50'],
+  '/hmi/reggiani.html': ['reggiani-01', 'reggiani-02', 'reggiani-03', 'reggiani-04', 'reggiani-05', 'reggiani-06'],
+  '/hmi/stenter-monforts.html': [
+    'stenter-14',
+    'stenter-15',
+    'stenter-17',
+    'stenter-22',
+    'stenter-23',
+    'calender-02',
+    'calender-03',
+  ],
+  '/hmi/stenter-redflag.html': ['stenter-19', 'stenter-20', 'stenter-21'],
+  '/hmi/mercerize.html': ['pad-steam-01', 'pad-steam-02'],
+  '/hmi/pad-steam.html': [
     'bleaching-01',
     'bleaching-02',
     'bleaching-03',
     'bleaching-01-live',
     'bleaching-02-live',
     'bleaching-03-live',
+    'bleaching-03-water',
   ],
-  '/hmi/canlar.html': ['canlar-150', 'canlar-1500', 'canlar-50'],
-  '/hmi/reggiani.html': ['reggiani-01', 'reggiani-02', 'reggiani-03', 'reggiani-04', 'reggiani-05', 'reggiani-06'],
-  '/hmi/stenter-monforts.html': ['stenter-14', 'stenter-15', 'stenter-22'],
-  '/hmi/stenter-redflag.html': ['stenter-19', 'stenter-20', 'stenter-21'],
-  '/hmi/mercerize.html': ['mercerize'],
-  '/hmi/pad-steam.html': ['pad-steam-01', 'pad-steam-02'],
   '/hmi/thermosol.html': ['thermosol-dyeing'],
 };
 
@@ -498,6 +514,8 @@ const HistoryWindow: React.FC<{
         <div className="history-plot chart-interactive" onMouseLeave={() => setHover(null)}>
           {tip && (
             <ChartHoverTip
+              className="chart-hover-tip-float"
+              style={{ left: `${(xOf(tip.t) / width) * 100}%`, top: `${(yOf(tip.v) / height) * 100}%`, right: 'auto' }}
               title={row.label}
               status={{
                 label: row.tone === 'bad' ? 'Alert' : row.tone === 'warn' ? 'Watch' : 'Recorded',
@@ -855,23 +873,156 @@ const ReportVisuals: React.FC<{
 
 const GRAPH_COLORS = ['#283090', '#0f766e', '#b45309', '#be123c', '#1d4ed8', '#7c3aed', '#047857', '#c2410c', '#0369a1', '#a16207'];
 
+const buildSummarySeries = (rows: MonitorRow[], from: number, to: number) => {
+  const span = Math.max(to - from, 1000);
+  const step = summaryStep(span);
+  const stride = Math.max(1, Math.ceil(span / step / 70));
+  return rows.flatMap((row, rowIndex) => {
+    const actual = parseNum(row.value);
+    const setPoint = parseNum(row.setValue);
+    if (actual === null || setPoint === null || setPoint === 0) return [];
+    const points: { t: number; v: number }[] = [];
+    let index = 0;
+    let sum = 0;
+    let count = 0;
+    let inside = 0;
+    for (let time = from; time <= to; time += step) {
+      const last = time >= to - step;
+      const value = last ? actual : readingAt(row, time, to) ?? actual;
+      sum += value;
+      count += 1;
+      if (withinTolerance(row, value)) inside += 1;
+      if (index % stride === 0 || last) points.push({ t: time, v: (value / setPoint) * 100 });
+      index += 1;
+    }
+    return [{
+      label: row.label,
+      unit: row.unit ?? '',
+      actual,
+      setPoint,
+      average: count ? (sum / count / setPoint) * 100 : (actual / setPoint) * 100,
+      insideShare: count ? inside / count : 0,
+      color: GRAPH_COLORS[rowIndex % GRAPH_COLORS.length],
+      points,
+    }];
+  });
+};
+
+const SummaryChartWindow: React.FC<{
+  title: string;
+  machine: string;
+  rows: MonitorRow[];
+  now: number;
+  onClose: () => void;
+}> = ({ title, machine, rows, now, onClose }) => {
+  const [range, setRange] = useState<(typeof TIME_RANGES)[number]['id']>('24h');
+  const [customFrom, setCustomFrom] = useState(() => toDateInput(now - 24 * 60 * 60 * 1000));
+  const [customTo, setCustomTo] = useState(() => toDateInput(now));
+  const [tip, setTip] = useState<{ x: number; y: number; title: string; detail: { label: string; value: string }[] } | null>(null);
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  const windowRange = useMemo(() => {
+    if (range === 'all') return { from: now - HISTORY_SPAN, to: now };
+    if (range === 'custom') {
+      const from = new Date(customFrom).getTime();
+      const to = new Date(customTo).getTime();
+      if (!Number.isFinite(from) || !Number.isFinite(to)) return { from: now - 24 * 60 * 60 * 1000, to: now };
+      return { from: Math.min(from, to), to: Math.max(from, to) };
+    }
+    const ms = TIME_RANGES.find((item) => item.id === range)?.ms ?? 24 * 60 * 60 * 1000;
+    return { from: now - ms, to: now };
+  }, [range, customFrom, customTo, now]);
+
+  const series = useMemo(
+    () => buildSummarySeries(rows, windowRange.from, windowRange.to),
+    [rows, windowRange.from, windowRange.to],
+  );
+
+  return (
+    <div className="history-window" role="dialog" aria-modal="true" aria-label={`${title} history`}>
+      <button type="button" className="history-window-backdrop" aria-label="Close history" onClick={onClose} />
+      <section className="history-window-panel">
+        <header className="history-window-head">
+          <div>
+            <p>{machine}</p>
+            <h3>{title}</h3>
+          </div>
+          <button type="button" className="history-window-close" onClick={onClose}>
+            Close
+          </button>
+        </header>
+        <div className="history-filters">
+          {TIME_RANGES.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={range === item.id ? 'active' : ''}
+              onClick={() => setRange(item.id)}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+        {range === 'custom' && (
+          <div className="history-custom">
+            <label>
+              From
+              <input type="datetime-local" value={customFrom} onChange={(event) => setCustomFrom(event.target.value)} />
+            </label>
+            <label>
+              To
+              <input type="datetime-local" value={customTo} onChange={(event) => setCustomTo(event.target.value)} />
+            </label>
+          </div>
+        )}
+        {series.length > 0 && (
+          <SummaryGallery
+            machine={machine}
+            series={series}
+            only={title}
+            onTip={(event, chartTitle, detail) => {
+              const tipWidth = 240;
+              const x = Math.max(tipWidth / 2 + 8, Math.min(event.clientX, window.innerWidth - tipWidth / 2 - 8));
+              const y = Math.max(8, event.clientY);
+              setTip({ x, y, title: chartTitle, detail });
+            }}
+            onHide={() => setTip(null)}
+          />
+        )}
+        {tip && (
+          <div className="sum-tip is-anchor" style={{ left: tip.x, top: tip.y }}>
+            <strong>{tip.title}</strong>
+            {tip.detail.map((row) => (
+              <span key={row.label}><em>{row.label}</em>{row.value}</span>
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+};
+
 const ValueSummary: React.FC<{
   machine: string;
   rows: MonitorRow[];
   now: number;
 }> = ({ machine, rows, now }) => {
-  const summaryRef = useRef<HTMLDivElement>(null);
   const [range, setRange] = useState<(typeof SUMMARY_RANGES)[number]['id']>('1h');
   const [customFrom, setCustomFrom] = useState(() => toDateInput(now - 24 * 60 * 60 * 1000));
   const [customTo, setCustomTo] = useState(() => toDateInput(now));
   const [tip, setTip] = useState<{ x: number; y: number; title: string; detail: { label: string; value: string }[] } | null>(null);
+  const [opened, setOpened] = useState<string | null>(null);
   const showTip = (event: React.MouseEvent, title: string, detail: { label: string; value: string }[]) => {
     const tipWidth = 240;
-    const tipHeight = 180;
-    let x = event.clientX + 14;
-    let y = event.clientY + 14;
-    if (x + tipWidth > window.innerWidth - 8) x = Math.max(8, event.clientX - tipWidth - 12);
-    if (y + tipHeight > window.innerHeight - 8) y = Math.max(8, event.clientY - tipHeight - 8);
+    const x = Math.max(tipWidth / 2 + 8, Math.min(event.clientX, window.innerWidth - tipWidth / 2 - 8));
+    const y = Math.max(8, event.clientY);
     setTip({ x, y, title, detail });
   };
   const hideTip = () => setTip(null);
@@ -887,59 +1038,13 @@ const ValueSummary: React.FC<{
     return { from: now - ms, to: now };
   }, [range, customFrom, customTo, now]);
 
-  const graph = useMemo(() => {
-    const span = Math.max(windowRange.to - windowRange.from, 1000);
-    const step = summaryStep(span);
-    const stride = Math.max(1, Math.ceil(span / step / 70));
-    return rows.flatMap((row, rowIndex) => {
-      const actual = parseNum(row.value);
-      const setPoint = parseNum(row.setValue);
-      if (actual === null || setPoint === null || setPoint === 0) return [];
-      const points: { t: number; v: number }[] = [];
-      let index = 0;
-      let sum = 0;
-      let count = 0;
-      let inside = 0;
-      for (let time = windowRange.from; time <= windowRange.to; time += step) {
-        const last = time >= windowRange.to - step;
-        const value = last ? actual : readingAt(row, time, windowRange.to) ?? actual;
-        sum += value;
-        count += 1;
-        if (withinTolerance(row, value)) inside += 1;
-        if (index % stride === 0 || last) points.push({ t: time, v: (value / setPoint) * 100 });
-        index += 1;
-      }
-      return [{
-        label: row.label,
-        unit: row.unit ?? '',
-        actual,
-        setPoint,
-        average: count ? (sum / count / setPoint) * 100 : (actual / setPoint) * 100,
-        insideShare: count ? inside / count : 0,
-        color: GRAPH_COLORS[rowIndex % GRAPH_COLORS.length],
-        points,
-      }];
-    });
-  }, [rows, windowRange.from, windowRange.to]);
-
-  const rangeLabel = SUMMARY_RANGES.find((item) => item.id === range)?.label ?? 'Summary';
-  const stamp = (time: number) =>
-    new Date(time).toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    });
+  const graph = useMemo(
+    () => buildSummarySeries(rows, windowRange.from, windowRange.to),
+    [rows, windowRange.from, windowRange.to],
+  );
 
   return (
-    <div className="split-summary" ref={summaryRef} role="region" aria-label="Live value summary">
-      <div className="split-summary-head">
-        <div>
-          <strong>{machine}</strong>
-          <span>{rangeLabel} • {stamp(windowRange.from)} to {stamp(windowRange.to)}</span>
-        </div>
-      </div>
+    <div className="split-summary" role="region" aria-label="Live value summary">
       <div className="split-summary-filters">
         {SUMMARY_RANGES.map((item) => (
           <button
@@ -965,10 +1070,28 @@ const ValueSummary: React.FC<{
         </div>
       )}
       {graph.length > 0 && (
-        <SummaryGallery machine={machine} series={graph} onTip={showTip} onHide={hideTip} />
+        <SummaryGallery
+          machine={machine}
+          series={graph}
+          onTip={showTip}
+          onHide={hideTip}
+          onOpen={(chart) => {
+            setTip(null);
+            setOpened(chart);
+          }}
+        />
+      )}
+      {opened && (
+        <SummaryChartWindow
+          title={opened}
+          machine={machine}
+          rows={rows}
+          now={now}
+          onClose={() => setOpened(null)}
+        />
       )}
       {tip && (
-        <div className="sum-tip" style={{ left: tip.x, top: tip.y }}>
+        <div className="sum-tip is-anchor" style={{ left: tip.x, top: tip.y }}>
           <strong>{tip.title}</strong>
           {tip.detail.map((row) => (
             <span key={row.label}><em>{row.label}</em>{row.value}</span>
